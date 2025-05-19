@@ -62,7 +62,8 @@ public partial class FormSelectProcess : Form
     }
 
     void FormSelectProcess_Load(object sender, EventArgs e) => LoadWindowsToList();
-
+    void buttonRefresh_Click(object sender, EventArgs e) => LoadWindowsToList();
+    void listViewProcesses_SelectedIndexChanged(object sender, EventArgs e) => buttonSelect.Enabled = listViewProcesses.SelectedItems.Count > 0;
     private void LoadWindowsToList()
     {
         listViewProcesses.Items.Clear();
@@ -84,17 +85,19 @@ public partial class FormSelectProcess : Form
 
             try
             {
-                using Process process = Process.GetProcessById((int)pid);
-                procName = process.ProcessName;
-                if(!process.HasExited)
+                using(Process process = Process.GetProcessById((int)pid))
                 {
-                    isElevated = ProcessPrivilegeChecker.IsProcessElevated(process.Id, out accessDeniedChecking);
+                    procName = process.ProcessName;
+                    if(!process.HasExited)
+                    {
+                        isElevated = ProcessPrivilegeChecker.IsProcessElevated(process.Id, out accessDeniedChecking);
+                    }
                 }
             }
             catch(ArgumentException) { return true; }
             catch(Exception ex)
             {
-                Debug.WriteLine($"Error processing PID {(int)pid} ('{procName}'): {ex.Message}");
+                Debug.WriteLine($"Error processing PID {(int)pid} (current procName: '{procName}'): {ex.Message}");
             }
 
             windows.Add(new WindowSelectionInfo
@@ -116,15 +119,36 @@ public partial class FormSelectProcess : Form
             item.SubItems.Add(winInfo.Title);
 
             string adminStatusText = winInfo.IsElevated ? "Yes" : "No";
+            item.ToolTipText = "";
+
             if(winInfo.AccessDeniedCheckingElevation && !winInfo.IsElevated)
             {
                 adminStatusText = "N/A";
-                item.ToolTipText = "Could not definitively determine admin status (Access Denied or other issue).";
+                item.ToolTipText = "Admin status could not be fully determined (Access Denied or other issue).";
             }
             item.SubItems.Add(adminStatusText);
 
-            if(winInfo.IsElevated && !_isSelfElevated) item.ForeColor = Color.DarkGoldenrod;
-            else if(adminStatusText == "N/A" && !_isSelfElevated) item.ForeColor = Color.OrangeRed;
+
+            if(winInfo.IsElevated)
+            {
+                item.ForeColor = Color.DarkGoldenrod;
+                if(!_isSelfElevated)
+                {
+                    item.ToolTipText += (string.IsNullOrEmpty(item.ToolTipText) ? "" : "\n") +
+                                        "This process is elevated. WPM may have limited interaction if not run as admin.";
+                }
+            }
+            else if(adminStatusText == "N/A" && !_isSelfElevated)
+            {
+                item.ForeColor = Color.OrangeRed;
+                item.ToolTipText += (string.IsNullOrEmpty(item.ToolTipText) ? "" : "\n") +
+                                   "Admin status uncertain due to access restrictions. WPM is not admin.";
+            }
+            else
+            {
+                item.ForeColor = listViewProcesses.ForeColor;
+            }
+
 
             item.Tag = winInfo;
             listViewProcesses.Items.Add(item);
@@ -134,7 +158,10 @@ public partial class FormSelectProcess : Form
         {
             listViewProcesses.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
             listViewProcesses.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-            if(listViewProcesses.Columns.Count > 2 && listViewProcesses.Columns[2].Width < 350) listViewProcesses.Columns[2].Width = 350;
+            if(listViewProcesses.Columns.Count > 2 && listViewProcesses.Columns[2].Width < 350)
+            {
+                listViewProcesses.Columns[2].Width = 350;
+            }
             if(listViewProcesses.Columns.Count > 3)
             {
                 listViewProcesses.Columns[3].Width = Math.Max(65, listViewProcesses.Columns[3].Width);
@@ -142,9 +169,6 @@ public partial class FormSelectProcess : Form
             }
         }
     }
-
-    void buttonRefresh_Click(object sender, EventArgs e) => LoadWindowsToList();
-    void listViewProcesses_SelectedIndexChanged(object sender, EventArgs e) => buttonSelect.Enabled = listViewProcesses.SelectedItems.Count > 0;
 
     void ConfirmSelection()
     {

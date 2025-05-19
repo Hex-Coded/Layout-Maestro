@@ -26,6 +26,146 @@ public partial class FormMain : Form
         _startupManager = new StartupManager();
         _windowMonitorService = new WindowMonitorService(_settingsManager);
         _windowActionService = new WindowActionService();
+
+
+        if(this.notifyIconMain.Icon == null)
+        {
+            try
+            {
+                this.notifyIconMain.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
+            catch(Exception exIcon)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to extract associated icon: {exIcon.Message}");
+                try
+                {
+                    this.notifyIconMain.Icon = System.Drawing.SystemIcons.Application;
+                }
+                catch(Exception exSysIcon)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to set system icon: {exSysIcon.Message}");
+                }
+            }
+        }
+    }
+
+
+    void UpdateProfileSpecificActionButtonsState()
+    {
+        bool profileSelected = _selectedProfileForEditing != null;
+        bool profileHasEnabledConfigs = profileSelected && _selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled);
+
+        buttonLaunchAllProfileApps.Enabled = profileHasEnabledConfigs;
+        buttonFocusAllProfileApps.Enabled = profileHasEnabledConfigs;
+        buttonCloseAllProfileApps.Enabled = profileHasEnabledConfigs;
+        buttonTestSelectedProfile.Enabled = profileHasEnabledConfigs;
+    }
+
+    void dataGridViewWindowConfigs_SelectionChanged(object sender, EventArgs e)
+    {
+        bool rowSelected = dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
+                           dataGridViewWindowConfigs.SelectedRows[0].DataBoundItem is WindowConfig;
+
+        buttonRemoveWindowConfig.Enabled = rowSelected;
+        buttonActivateLaunchApp.Enabled = rowSelected;
+        buttonCloseApp.Enabled = rowSelected;
+        buttonFetchPosition.Enabled = rowSelected;
+        buttonFetchSize.Enabled = rowSelected;
+    }
+
+
+    private void buttonCloseApp_Click(object sender, EventArgs e)
+    {
+        if(dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
+            dataGridViewWindowConfigs.SelectedRows[0].DataBoundItem is WindowConfig selectedConfig)
+        {
+            if(!selectedConfig.IsEnabled)
+            {
+                MessageBox.Show($"This configuration for '{selectedConfig.ProcessName}' is disabled. No action taken.", "Action Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var windowInfo = _windowActionService.FindManagedWindow(selectedConfig);
+            if(windowInfo?.GetProcess() == null || windowInfo.GetProcess().HasExited)
+            {
+                MessageBox.Show($"Application '{selectedConfig.ProcessName}' is not running or could not be found.", "Not Running", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string appIdentifier = $"{selectedConfig.ProcessName} (PID: {windowInfo.GetProcess().Id})";
+            DialogResult dr = MessageBox.Show($"Are you sure you want to attempt to close '{appIdentifier}'?\n\nThis will first try to close it gracefully. If that fails or times out, do you want to force kill the process?",
+                                              "Confirm Close Application", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+            if(dr == DialogResult.Cancel) return;
+
+            bool forceKill = (dr == DialogResult.Yes);
+
+            bool success = _windowActionService.CloseApp(selectedConfig, forceKill, 2000);
+
+            if(success)
+            {
+                MessageBox.Show($"Attempt to close '{appIdentifier}' {(forceKill ? "and force kill if necessary " : "")}initiated.", "Close Attempted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show($"Failed to close '{appIdentifier}' gracefully.\n{(forceKill ? "Force kill was also attempted or would be if selected." : "Force kill was not selected.")}", "Close Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        else
+        {
+            MessageBox.Show("Please select a window configuration from the list to close.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+
+    private void buttonCloseAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null)
+        {
+            MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
+        {
+            MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to close.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        DialogResult dr = MessageBox.Show($"Attempt to close all running applications in profile '{_selectedProfileForEditing.Name}'?\n\nFor each app, this will first try to close it gracefully. If that fails or times out, should it be force killed?",
+                                          "Confirm Close All Applications", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+
+        if(dr == DialogResult.Cancel) return;
+
+        bool forceKill = (dr == DialogResult.Yes);
+
+        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+            launchIfNotRunning: false,
+            bringToForegroundIfRunning: false,
+            closeIfRunning: true,
+            forceKillIfNotClosed: forceKill,
+            closeGracePeriodMs: 1500);
+    }
+
+
+    private void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null) { MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to launch.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+
+        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+            launchIfNotRunning: true,
+            bringToForegroundIfRunning: false,
+            closeIfRunning: false);
+    }
+
+    private void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null) { MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to focus.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+
+        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+            launchIfNotRunning: false,
+            bringToForegroundIfRunning: true,
+            closeIfRunning: false);
     }
 
     void buttonAddWindowConfig_Click(object sender, EventArgs e)
@@ -288,16 +428,6 @@ public partial class FormMain : Form
         {
             if(notifyIconMain != null && this.Visible) notifyIconMain.Visible = false;
         }
-    }
-
-    void UpdateProfileSpecificActionButtonsState()
-    {
-        bool profileSelectedAndHasConfigs = _selectedProfileForEditing != null &&
-                                            _selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled);
-
-        buttonTestSelectedProfile.Enabled = profileSelectedAndHasConfigs;
-        if(buttonLaunchAllProfileApps != null) buttonLaunchAllProfileApps.Enabled = profileSelectedAndHasConfigs;
-        if(buttonFocusAllProfileApps != null) buttonFocusAllProfileApps.Enabled = profileSelectedAndHasConfigs;
     }
 
     private IntPtr FindWindowForConfig(WindowConfig config)
@@ -670,16 +800,6 @@ public partial class FormMain : Form
     {
     }
 
-    void dataGridViewWindowConfigs_SelectionChanged(object sender, EventArgs e)
-    {
-        bool rowSelected = dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
-                           dataGridViewWindowConfigs.SelectedRows[0].DataBoundItem is WindowConfig;
-        buttonFetchPosition.Enabled = rowSelected;
-        buttonFetchSize.Enabled = rowSelected;
-        buttonRemoveWindowConfig.Enabled = rowSelected;
-
-        if(buttonActivateLaunchApp != null) buttonActivateLaunchApp.Enabled = rowSelected;
-    }
 
     void buttonFetchPosition_Click(object sender, EventArgs e)
     {
@@ -855,40 +975,6 @@ public partial class FormMain : Form
         {
             MessageBox.Show("Please select a window configuration from the list.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-    }
-
-    private void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
-    {
-        if(_selectedProfileForEditing == null)
-        {
-            MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
-        {
-            MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to launch.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
-        _windowActionService.ActivateOrLaunchAllAppsInProfile(_selectedProfileForEditing, launchIfNotRunning: true, bringToForegroundIfRunning: false);
-        MessageBox.Show($"Attempted to launch all missing enabled apps in profile '{_selectedProfileForEditing.Name}'.\nCheck Debug Output for details.", "Launch All Requested", MessageBoxButtons.OK, MessageBoxIcon.Information);
-    }
-
-    private void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
-    {
-        if(_selectedProfileForEditing == null)
-        {
-            MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
-        {
-            MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to focus.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
-        _windowActionService.ActivateOrLaunchAllAppsInProfile(_selectedProfileForEditing, launchIfNotRunning: false, bringToForegroundIfRunning: true);
-        MessageBox.Show($"Attempted to bring all running, enabled apps in profile '{_selectedProfileForEditing.Name}' to the foreground.\nCheck Debug Output for details.", "Focus All Requested", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     protected override void WndProc(ref Message m)

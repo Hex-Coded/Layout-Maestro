@@ -37,6 +37,17 @@
         private System.Windows.Forms.Button buttonFocusAllProfileApps;
 
 
+        // NEW ACTION BUTTONS
+        private System.Windows.Forms.Button buttonCloseApp;          // For selected app
+        private System.Windows.Forms.Button buttonCloseAllProfileApps; // For all apps in profile
+
+        // UI STRUCTURE
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelProfileActions; // New
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelItemActions;   // New
+        private System.Windows.Forms.Label labelProfileActions; // New
+        private System.Windows.Forms.Label labelItemActions;    // New
+
+
         protected override void Dispose(bool disposing)
         {
             if(disposing && (components != null))
@@ -57,14 +68,20 @@
             tabPageProfiles = new TabPage();
             checkBoxDisableProgram = new CheckBox();
             groupBoxWindowConfigs = new GroupBox();
-            buttonLaunchAllProfileApps = new Button();
-            buttonFocusAllProfileApps = new Button();
-            buttonTestSelectedProfile = new Button();
+            labelItemActions = new Label();
+            labelProfileActions = new Label();
+            flowLayoutPanelItemActions = new FlowLayoutPanel();
             buttonAddWindowConfig = new Button();
             buttonRemoveWindowConfig = new Button();
             buttonActivateLaunchApp = new Button();
+            buttonCloseApp = new Button();
             buttonFetchPosition = new Button();
             buttonFetchSize = new Button();
+            flowLayoutPanelProfileActions = new FlowLayoutPanel();
+            buttonLaunchAllProfileApps = new Button();
+            buttonFocusAllProfileApps = new Button();
+            buttonCloseAllProfileApps = new Button();
+            buttonTestSelectedProfile = new Button();
             dataGridViewWindowConfigs = new DataGridView();
             groupBoxProfiles = new GroupBox();
             labelActiveProfile = new Label();
@@ -84,6 +101,8 @@
             tabControlMain.SuspendLayout();
             tabPageProfiles.SuspendLayout();
             groupBoxWindowConfigs.SuspendLayout();
+            flowLayoutPanelItemActions.SuspendLayout();
+            flowLayoutPanelProfileActions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).BeginInit();
             groupBoxProfiles.SuspendLayout();
             tabPageSettings.SuspendLayout();
@@ -124,7 +143,7 @@
             tabControlMain.Location = new Point(0, 0);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(784, 521);
+            tabControlMain.Size = new Size(984, 521);
             tabControlMain.TabIndex = 0;
             // 
             // tabPageProfiles
@@ -135,15 +154,16 @@
             tabPageProfiles.Location = new Point(4, 24);
             tabPageProfiles.Name = "tabPageProfiles";
             tabPageProfiles.Padding = new Padding(3);
-            tabPageProfiles.Size = new Size(776, 493);
+            tabPageProfiles.Size = new Size(976, 493);
             tabPageProfiles.TabIndex = 0;
             tabPageProfiles.Text = "Profiles & Windows";
             tabPageProfiles.UseVisualStyleBackColor = true;
             // 
             // checkBoxDisableProgram
             // 
+            checkBoxDisableProgram.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             checkBoxDisableProgram.AutoSize = true;
-            checkBoxDisableProgram.Location = new Point(608, 7);
+            checkBoxDisableProgram.Location = new Point(808, 7);
             checkBoxDisableProgram.Name = "checkBoxDisableProgram";
             checkBoxDisableProgram.Size = new Size(156, 19);
             checkBoxDisableProgram.TabIndex = 2;
@@ -155,136 +175,194 @@
             // groupBoxWindowConfigs
             // 
             groupBoxWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            groupBoxWindowConfigs.Controls.Add(buttonLaunchAllProfileApps);
-            groupBoxWindowConfigs.Controls.Add(buttonFocusAllProfileApps);
-            groupBoxWindowConfigs.Controls.Add(buttonTestSelectedProfile);
-            groupBoxWindowConfigs.Controls.Add(buttonAddWindowConfig);
-            groupBoxWindowConfigs.Controls.Add(buttonRemoveWindowConfig);
-            groupBoxWindowConfigs.Controls.Add(buttonActivateLaunchApp);
-            groupBoxWindowConfigs.Controls.Add(buttonFetchPosition);
-            groupBoxWindowConfigs.Controls.Add(buttonFetchSize);
+            groupBoxWindowConfigs.Controls.Add(labelItemActions);
+            groupBoxWindowConfigs.Controls.Add(labelProfileActions);
+            groupBoxWindowConfigs.Controls.Add(flowLayoutPanelItemActions);
+            groupBoxWindowConfigs.Controls.Add(flowLayoutPanelProfileActions);
             groupBoxWindowConfigs.Controls.Add(dataGridViewWindowConfigs);
             groupBoxWindowConfigs.Location = new Point(200, 30);
             groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
-            groupBoxWindowConfigs.Size = new Size(570, 457);
+            groupBoxWindowConfigs.Size = new Size(770, 457);
             groupBoxWindowConfigs.TabIndex = 1;
             groupBoxWindowConfigs.TabStop = false;
             groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
             // 
-            // buttonLaunchAllProfileApps
+            // labelItemActions
             // 
-            buttonLaunchAllProfileApps.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonLaunchAllProfileApps.Enabled = false;
-            buttonLaunchAllProfileApps.Location = new Point(250, 390);
-            buttonLaunchAllProfileApps.Name = "buttonLaunchAllProfileApps";
-            buttonLaunchAllProfileApps.Size = new Size(100, 25);
-            buttonLaunchAllProfileApps.TabIndex = 1;
-            buttonLaunchAllProfileApps.Text = "Launch All";
-            toolTipGeneral.SetToolTip(buttonLaunchAllProfileApps, "Launch all configured apps in this profile that are not currently running.");
-            buttonLaunchAllProfileApps.UseVisualStyleBackColor = true;
-            buttonLaunchAllProfileApps.Click += buttonLaunchAllProfileApps_Click;
+            labelItemActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelItemActions.AutoSize = true;
+            labelItemActions.Location = new Point(6, 393);
+            labelItemActions.Name = "labelItemActions";
+            labelItemActions.Size = new Size(124, 15);
+            labelItemActions.TabIndex = 3;
+            labelItemActions.Text = "Selected Item Actions:";
             // 
-            // buttonFocusAllProfileApps
+            // labelProfileActions
             // 
-            buttonFocusAllProfileApps.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonFocusAllProfileApps.Enabled = false;
-            buttonFocusAllProfileApps.Location = new Point(357, 390);
-            buttonFocusAllProfileApps.Name = "buttonFocusAllProfileApps";
-            buttonFocusAllProfileApps.Size = new Size(100, 25);
-            buttonFocusAllProfileApps.TabIndex = 2;
-            buttonFocusAllProfileApps.Text = "Focus All";
-            toolTipGeneral.SetToolTip(buttonFocusAllProfileApps, "Bring all running configured apps in this profile to the foreground.");
-            buttonFocusAllProfileApps.UseVisualStyleBackColor = true;
-            buttonFocusAllProfileApps.Click += buttonFocusAllProfileApps_Click;
+            labelProfileActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelProfileActions.AutoSize = true;
+            labelProfileActions.Location = new Point(6, 328);
+            labelProfileActions.Name = "labelProfileActions";
+            labelProfileActions.Size = new Size(87, 15);
+            labelProfileActions.TabIndex = 1;
+            labelProfileActions.Text = "Profile Actions:";
             // 
-            // buttonTestSelectedProfile
+            // flowLayoutPanelItemActions
             // 
-            buttonTestSelectedProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            buttonTestSelectedProfile.Enabled = false;
-            buttonTestSelectedProfile.Location = new Point(464, 390);
-            buttonTestSelectedProfile.Name = "buttonTestSelectedProfile";
-            buttonTestSelectedProfile.Size = new Size(100, 25);
-            buttonTestSelectedProfile.TabIndex = 3;
-            buttonTestSelectedProfile.Text = "Test Layout";
-            toolTipGeneral.SetToolTip(buttonTestSelectedProfile, "Apply window positions/sizes for the currently selected profile.");
-            buttonTestSelectedProfile.UseVisualStyleBackColor = true;
-            buttonTestSelectedProfile.Click += buttonTestSelectedProfile_Click;
+            flowLayoutPanelItemActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            flowLayoutPanelItemActions.Controls.Add(buttonAddWindowConfig);
+            flowLayoutPanelItemActions.Controls.Add(buttonRemoveWindowConfig);
+            flowLayoutPanelItemActions.Controls.Add(buttonActivateLaunchApp);
+            flowLayoutPanelItemActions.Controls.Add(buttonCloseApp);
+            flowLayoutPanelItemActions.Controls.Add(buttonFetchPosition);
+            flowLayoutPanelItemActions.Controls.Add(buttonFetchSize);
+            flowLayoutPanelItemActions.Location = new Point(6, 411);
+            flowLayoutPanelItemActions.Name = "flowLayoutPanelItemActions";
+            flowLayoutPanelItemActions.Size = new Size(758, 33);
+            flowLayoutPanelItemActions.TabIndex = 4;
             // 
             // buttonAddWindowConfig
             // 
-            buttonAddWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            buttonAddWindowConfig.Location = new Point(7, 422);
+            buttonAddWindowConfig.Location = new Point(3, 3);
             buttonAddWindowConfig.Name = "buttonAddWindowConfig";
-            buttonAddWindowConfig.Size = new Size(115, 25);
-            buttonAddWindowConfig.TabIndex = 4;
-            buttonAddWindowConfig.Text = "Add Window";
-            toolTipGeneral.SetToolTip(buttonAddWindowConfig, "Add a new window configuration by selecting a running process");
+            buttonAddWindowConfig.Size = new Size(85, 25);
+            buttonAddWindowConfig.TabIndex = 0;
+            buttonAddWindowConfig.Text = "Add";
+            toolTipGeneral.SetToolTip(buttonAddWindowConfig, "Add a new window configuration");
             buttonAddWindowConfig.UseVisualStyleBackColor = true;
             buttonAddWindowConfig.Click += buttonAddWindowConfig_Click;
             // 
             // buttonRemoveWindowConfig
             // 
-            buttonRemoveWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonRemoveWindowConfig.Enabled = false;
-            buttonRemoveWindowConfig.Location = new Point(129, 422);
+            buttonRemoveWindowConfig.Location = new Point(94, 3);
             buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
-            buttonRemoveWindowConfig.Size = new Size(115, 25);
-            buttonRemoveWindowConfig.TabIndex = 5;
-            buttonRemoveWindowConfig.Text = "Remove Window";
+            buttonRemoveWindowConfig.Size = new Size(85, 25);
+            buttonRemoveWindowConfig.TabIndex = 1;
+            buttonRemoveWindowConfig.Text = "Remove";
+            toolTipGeneral.SetToolTip(buttonRemoveWindowConfig, "Remove selected window configuration");
             buttonRemoveWindowConfig.UseVisualStyleBackColor = true;
             buttonRemoveWindowConfig.Click += buttonRemoveWindowConfig_Click;
             // 
             // buttonActivateLaunchApp
             // 
-            buttonActivateLaunchApp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             buttonActivateLaunchApp.Enabled = false;
-            buttonActivateLaunchApp.Location = new Point(251, 422);
+            buttonActivateLaunchApp.Location = new Point(185, 3);
             buttonActivateLaunchApp.Name = "buttonActivateLaunchApp";
             buttonActivateLaunchApp.Size = new Size(100, 25);
-            buttonActivateLaunchApp.TabIndex = 6;
-            buttonActivateLaunchApp.Text = "Activate Sel.";
-            toolTipGeneral.SetToolTip(buttonActivateLaunchApp, "Launch the selected app if not running, or bring its window to the foreground.");
+            buttonActivateLaunchApp.TabIndex = 2;
+            buttonActivateLaunchApp.Text = "Launch";
+            toolTipGeneral.SetToolTip(buttonActivateLaunchApp, "Launch selected app if not running, or activate its window");
             buttonActivateLaunchApp.UseVisualStyleBackColor = true;
             buttonActivateLaunchApp.Click += buttonActivateLaunchApp_Click;
             // 
+            // buttonCloseApp
+            // 
+            buttonCloseApp.Enabled = false;
+            buttonCloseApp.Location = new Point(291, 3);
+            buttonCloseApp.Name = "buttonCloseApp";
+            buttonCloseApp.Size = new Size(85, 25);
+            buttonCloseApp.TabIndex = 3;
+            buttonCloseApp.Text = "Close";
+            toolTipGeneral.SetToolTip(buttonCloseApp, "Attempt to close the selected application");
+            buttonCloseApp.UseVisualStyleBackColor = true;
+            buttonCloseApp.Click += buttonCloseApp_Click;
+            // 
             // buttonFetchPosition
             // 
-            buttonFetchPosition.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonFetchPosition.Enabled = false;
-            buttonFetchPosition.Location = new Point(357, 422);
+            buttonFetchPosition.Location = new Point(382, 3);
             buttonFetchPosition.Name = "buttonFetchPosition";
-            buttonFetchPosition.Size = new Size(100, 25);
-            buttonFetchPosition.TabIndex = 7;
-            buttonFetchPosition.Text = "Fetch Position";
-            toolTipGeneral.SetToolTip(buttonFetchPosition, "Update X,Y from the live window matching this configuration");
+            buttonFetchPosition.Size = new Size(85, 25);
+            buttonFetchPosition.TabIndex = 4;
+            buttonFetchPosition.Text = "Fetch Pos";
+            toolTipGeneral.SetToolTip(buttonFetchPosition, "Update X,Y from the live window");
             buttonFetchPosition.UseVisualStyleBackColor = true;
             buttonFetchPosition.Click += buttonFetchPosition_Click;
             // 
             // buttonFetchSize
             // 
-            buttonFetchSize.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonFetchSize.Enabled = false;
-            buttonFetchSize.Location = new Point(464, 422);
+            buttonFetchSize.Location = new Point(473, 3);
             buttonFetchSize.Name = "buttonFetchSize";
-            buttonFetchSize.Size = new Size(100, 25);
-            buttonFetchSize.TabIndex = 8;
+            buttonFetchSize.Size = new Size(80, 25);
+            buttonFetchSize.TabIndex = 5;
             buttonFetchSize.Text = "Fetch Size";
-            toolTipGeneral.SetToolTip(buttonFetchSize, "Update Width,Height from the live window matching this configuration");
+            toolTipGeneral.SetToolTip(buttonFetchSize, "Update Width,Height from the live window");
             buttonFetchSize.UseVisualStyleBackColor = true;
             buttonFetchSize.Click += buttonFetchSize_Click;
+            // 
+            // flowLayoutPanelProfileActions
+            // 
+            flowLayoutPanelProfileActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            flowLayoutPanelProfileActions.Controls.Add(buttonLaunchAllProfileApps);
+            flowLayoutPanelProfileActions.Controls.Add(buttonFocusAllProfileApps);
+            flowLayoutPanelProfileActions.Controls.Add(buttonCloseAllProfileApps);
+            flowLayoutPanelProfileActions.Controls.Add(buttonTestSelectedProfile);
+            flowLayoutPanelProfileActions.Location = new Point(6, 346);
+            flowLayoutPanelProfileActions.Name = "flowLayoutPanelProfileActions";
+            flowLayoutPanelProfileActions.Size = new Size(758, 33);
+            flowLayoutPanelProfileActions.TabIndex = 2;
+            // 
+            // buttonLaunchAllProfileApps
+            // 
+            buttonLaunchAllProfileApps.Enabled = false;
+            buttonLaunchAllProfileApps.Location = new Point(3, 3);
+            buttonLaunchAllProfileApps.Name = "buttonLaunchAllProfileApps";
+            buttonLaunchAllProfileApps.Size = new Size(120, 25);
+            buttonLaunchAllProfileApps.TabIndex = 0;
+            buttonLaunchAllProfileApps.Text = "Launch All Missing";
+            toolTipGeneral.SetToolTip(buttonLaunchAllProfileApps, "Launch all apps in profile that are not running");
+            buttonLaunchAllProfileApps.UseVisualStyleBackColor = true;
+            buttonLaunchAllProfileApps.Click += buttonLaunchAllProfileApps_Click;
+            // 
+            // buttonFocusAllProfileApps
+            // 
+            buttonFocusAllProfileApps.Enabled = false;
+            buttonFocusAllProfileApps.Location = new Point(129, 3);
+            buttonFocusAllProfileApps.Name = "buttonFocusAllProfileApps";
+            buttonFocusAllProfileApps.Size = new Size(90, 25);
+            buttonFocusAllProfileApps.TabIndex = 1;
+            buttonFocusAllProfileApps.Text = "Focus All";
+            toolTipGeneral.SetToolTip(buttonFocusAllProfileApps, "Bring all running apps in profile to foreground");
+            buttonFocusAllProfileApps.UseVisualStyleBackColor = true;
+            buttonFocusAllProfileApps.Click += buttonFocusAllProfileApps_Click;
+            // 
+            // buttonCloseAllProfileApps
+            // 
+            buttonCloseAllProfileApps.Enabled = false;
+            buttonCloseAllProfileApps.Location = new Point(225, 3);
+            buttonCloseAllProfileApps.Name = "buttonCloseAllProfileApps";
+            buttonCloseAllProfileApps.Size = new Size(90, 25);
+            buttonCloseAllProfileApps.TabIndex = 2;
+            buttonCloseAllProfileApps.Text = "Close All";
+            toolTipGeneral.SetToolTip(buttonCloseAllProfileApps, "Attempt to close all running apps in this profile");
+            buttonCloseAllProfileApps.UseVisualStyleBackColor = true;
+            buttonCloseAllProfileApps.Click += buttonCloseAllProfileApps_Click;
+            // 
+            // buttonTestSelectedProfile
+            // 
+            buttonTestSelectedProfile.Enabled = false;
+            buttonTestSelectedProfile.Location = new Point(321, 3);
+            buttonTestSelectedProfile.Name = "buttonTestSelectedProfile";
+            buttonTestSelectedProfile.Size = new Size(90, 25);
+            buttonTestSelectedProfile.TabIndex = 3;
+            buttonTestSelectedProfile.Text = "Test Layout";
+            toolTipGeneral.SetToolTip(buttonTestSelectedProfile, "Apply window positions/sizes for this profile");
+            buttonTestSelectedProfile.UseVisualStyleBackColor = true;
+            buttonTestSelectedProfile.Click += buttonTestSelectedProfile_Click;
             // 
             // dataGridViewWindowConfigs
             // 
             dataGridViewWindowConfigs.AllowUserToAddRows = false;
             dataGridViewWindowConfigs.AllowUserToDeleteRows = false;
             dataGridViewWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dataGridViewWindowConfigs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewWindowConfigs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewWindowConfigs.Location = new Point(7, 23);
             dataGridViewWindowConfigs.MultiSelect = false;
             dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
             dataGridViewWindowConfigs.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewWindowConfigs.Size = new Size(557, 360);
+            dataGridViewWindowConfigs.Size = new Size(757, 297);
             dataGridViewWindowConfigs.TabIndex = 0;
             dataGridViewWindowConfigs.CellEndEdit += dataGridViewWindowConfigs_CellEndEdit;
             dataGridViewWindowConfigs.SelectionChanged += dataGridViewWindowConfigs_SelectionChanged;
@@ -407,7 +485,7 @@
             // 
             comboBoxStartupOptions.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxStartupOptions.FormattingEnabled = true;
-            comboBoxStartupOptions.Location = new Point(220, 17);
+            comboBoxStartupOptions.Location = new Point(114, 17);
             comboBoxStartupOptions.Name = "comboBoxStartupOptions";
             comboBoxStartupOptions.Size = new Size(250, 23);
             comboBoxStartupOptions.TabIndex = 1;
@@ -426,7 +504,7 @@
             buttonSaveChanges.Dock = DockStyle.Bottom;
             buttonSaveChanges.Location = new Point(0, 521);
             buttonSaveChanges.Name = "buttonSaveChanges";
-            buttonSaveChanges.Size = new Size(784, 40);
+            buttonSaveChanges.Size = new Size(984, 40);
             buttonSaveChanges.TabIndex = 1;
             buttonSaveChanges.Text = "Save All Changes";
             buttonSaveChanges.UseVisualStyleBackColor = true;
@@ -436,10 +514,10 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(784, 561);
+            ClientSize = new Size(984, 561);
             Controls.Add(tabControlMain);
             Controls.Add(buttonSaveChanges);
-            MinimumSize = new Size(600, 400);
+            MinimumSize = new Size(700, 520);
             Name = "FormMain";
             Text = "Window Placement Manager";
             FormClosing += FormMain_FormClosing;
@@ -450,28 +528,15 @@
             tabPageProfiles.ResumeLayout(false);
             tabPageProfiles.PerformLayout();
             groupBoxWindowConfigs.ResumeLayout(false);
+            groupBoxWindowConfigs.PerformLayout();
+            flowLayoutPanelItemActions.ResumeLayout(false);
+            flowLayoutPanelProfileActions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).EndInit();
             groupBoxProfiles.ResumeLayout(false);
             groupBoxProfiles.PerformLayout();
             tabPageSettings.ResumeLayout(false);
             tabPageSettings.PerformLayout();
             ResumeLayout(false);
-
-
-
-
-
-            this.notifyIconMain.ContextMenuStrip = this.contextMenuStripTray;
-
-            if(this.notifyIconMain.Icon == null)
-            {
-                // Attempt to use a system icon if available and no custom icon set
-                try { this.notifyIconMain.Icon = System.Drawing.SystemIcons.Application; }
-                catch { }
-            }
-            this.notifyIconMain.Text = "Window Placement Manager";
-            this.notifyIconMain.Visible = true;
-            this.notifyIconMain.DoubleClick += new System.EventHandler(this.notifyIconMain_DoubleClick);
         }
     }
 }
