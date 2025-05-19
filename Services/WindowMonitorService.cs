@@ -1,16 +1,17 @@
 ﻿using System.Diagnostics;
 using WindowPlacementManager.Models;
+using Timer = System.Windows.Forms.Timer;
 
 namespace WindowPlacementManager.Services;
 
 public class WindowMonitorService : IDisposable
 {
-    private readonly SettingsManager _settingsManager;
-    private AppSettingsData _currentSettings;
-    private Profile _activeProfile;
-    private readonly HashSet<IntPtr> _handledWindowHandlesThisCycle;
-    private System.Windows.Forms.Timer _timer;
-    private bool _isProgramActivityDisabled = true;
+    readonly SettingsManager _settingsManager;
+    AppSettingsData _currentSettings;
+    Profile _activeProfile;
+    readonly HashSet<IntPtr> _handledWindowHandlesThisCycle;
+    Timer _timer;
+    bool _isProgramActivityDisabled = true;
 
     public WindowMonitorService(SettingsManager settingsManager)
     {
@@ -29,54 +30,20 @@ public class WindowMonitorService : IDisposable
 
     public void SetPositioningActive(bool isActive) => _isProgramActivityDisabled = !isActive;
 
-    private void InitializeTimer()
+    void InitializeTimer()
     {
         _timer = new System.Windows.Forms.Timer { Interval = 300 };
         _timer.Tick += Timer_Tick;
         _timer.Start();
     }
 
-    private void Timer_Tick(object sender, EventArgs e) => ProcessWindows();
+    void Timer_Tick(object sender, EventArgs e) => ProcessWindows();
 
     public void ProcessWindows()
     {
         if(_isProgramActivityDisabled || _activeProfile == null || !_activeProfile.WindowConfigs.Any()) return;
-
         _handledWindowHandlesThisCycle.Clear();
-
-        foreach(var config in _activeProfile.WindowConfigs.Where(c => c.IsEnabled))
-        {
-            if(string.IsNullOrWhiteSpace(config.ProcessName)) continue;
-
-            var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
-            if(foundWindow == null || foundWindow?.HWnd == IntPtr.Zero) continue;
-
-            IntPtr hWnd = foundWindow.HWnd;
-            if(_handledWindowHandlesThisCycle.Contains(hWnd)) continue;
-
-            if(!Native.GetWindowRect(hWnd, out RECT currentRect)) continue;
-
-            int targetX = config.ControlPosition ? config.TargetX : currentRect.Left;
-            int targetY = config.ControlPosition ? config.TargetY : currentRect.Top;
-            int targetWidth = config.ControlSize ? config.TargetWidth : currentRect.Width;
-            int targetHeight = config.ControlSize ? config.TargetHeight : currentRect.Height;
-
-            if(targetWidth <= 0 || targetHeight <= 0)
-            {
-                Debug.WriteLine($"ProcessWindows: Invalid target dims for {config.ProcessName} (hWnd:{hWnd}) W:{targetWidth} H:{targetHeight}");
-                continue;
-            }
-
-            bool needsMove = config.ControlPosition && (currentRect.Left != targetX || currentRect.Top != targetY);
-            bool needsResize = config.ControlSize && (currentRect.Width != targetWidth || currentRect.Height != targetHeight);
-
-            if(needsMove || needsResize)
-            {
-                Native.MoveWindow(hWnd, targetX, targetY, targetWidth, targetHeight, true);
-                Debug.WriteLine($"ProcessWindows: Applied to {config.ProcessName} (hWnd:{hWnd}) X:{targetX} Y:{targetY} W:{targetWidth} H:{targetHeight}");
-            }
-            _handledWindowHandlesThisCycle.Add(hWnd);
-        }
+        ProcessWindowConfigurations(_activeProfile.WindowConfigs.Where(c => c.IsEnabled), _handledWindowHandlesThisCycle, false, "ProcessWindows");
     }
 
     public void TestProfileLayout(Profile profileToTest)
@@ -86,40 +53,61 @@ public class WindowMonitorService : IDisposable
             Debug.WriteLine("TestProfileLayout: Profile null or no configs.");
             return;
         }
-
         HashSet<IntPtr> handledHWndsThisTest = new HashSet<IntPtr>();
-        foreach(var config in profileToTest.WindowConfigs.Where(c => c.IsEnabled))
-        {
-            if(string.IsNullOrWhiteSpace(config.ProcessName)) continue;
-
-            var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
-            if(foundWindow?.HWnd == IntPtr.Zero)
-            {
-                Debug.WriteLine($"TestProfileLayout: Window not found for '{config.ProcessName}' Hint:'{config.WindowTitleHint}'.");
-                continue;
-            }
-
-            IntPtr hWnd = foundWindow.HWnd;
-            if(handledHWndsThisTest.Contains(hWnd)) continue;
-
-            if(!Native.GetWindowRect(hWnd, out RECT currentRect)) continue;
-
-            int targetX = config.ControlPosition ? config.TargetX : currentRect.Left;
-            int targetY = config.ControlPosition ? config.TargetY : currentRect.Top;
-            int targetWidth = config.ControlSize ? config.TargetWidth : currentRect.Width;
-            int targetHeight = config.ControlSize ? config.TargetHeight : currentRect.Height;
-
-            if(targetWidth <= 0 || targetHeight <= 0)
-            {
-                Debug.WriteLine($"TestProfileLayout: Invalid target dims for {config.ProcessName} (hWnd:{hWnd}) W:{targetWidth} H:{targetHeight}");
-                continue;
-            }
-
-            Native.MoveWindow(hWnd, targetX, targetY, targetWidth, targetHeight, true);
-            handledHWndsThisTest.Add(hWnd);
-            Debug.WriteLine($"TestProfileLayout: Applied to {config.ProcessName} (hWnd:{hWnd}) X:{targetX} Y:{targetY} W:{targetWidth} H:{targetHeight}");
-        }
+        ProcessWindowConfigurations(profileToTest.WindowConfigs.Where(c => c.IsEnabled), handledHWndsThisTest, true, "TestProfileLayout");
         Debug.WriteLine("TestProfileLayout: Completed.");
+    }
+
+    void ProcessWindowConfigurations(IEnumerable<WindowConfig> configs, HashSet<IntPtr> handledHandles, bool alwaysApply, string logContext)
+    {
+        foreach(var config in configs)
+            ApplyConfigurationToSingleWindow(config, handledHandles, alwaysApply, logContext);
+    }
+
+    void ApplyConfigurationToSingleWindow(WindowConfig config, HashSet<IntPtr> handledHandles, bool alwaysApply, string logContext)
+    {
+        if(string.IsNullOrWhiteSpace(config.ProcessName)) return;
+
+        var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
+        if(foundWindow == null || foundWindow.HWnd == IntPtr.Zero)
+        {
+            if(logContext == "TestProfileLayout") Debug.WriteLine($"{logContext}: Window not found for '{config.ProcessName}' Hint:'{config.WindowTitleHint}'.");
+            return;
+        }
+
+        IntPtr hWnd = foundWindow.HWnd;
+        if(handledHandles.Contains(hWnd)) return;
+        if(!Native.GetWindowRect(hWnd, out RECT currentRect)) return;
+
+        var targetDimensions = CalculateTargetDimensions(config, currentRect);
+
+        if(targetDimensions.Width <= 0 || targetDimensions.Height <= 0)
+        {
+            Debug.WriteLine($"{logContext}: Invalid target dims for {config.ProcessName} (hWnd:{hWnd}) W:{targetDimensions.Width} H:{targetDimensions.Height}");
+            return;
+        }
+
+        bool needsChange = ShouldApplyWindowChanges(config, currentRect, targetDimensions);
+
+        if(alwaysApply || needsChange)
+        {
+            Native.MoveWindow(hWnd, targetDimensions.X, targetDimensions.Y, targetDimensions.Width, targetDimensions.Height, true);
+            Debug.WriteLine($"{logContext}: Applied to {config.ProcessName} (hWnd:{hWnd}) X:{targetDimensions.X} Y:{targetDimensions.Y} W:{targetDimensions.Width} H:{targetDimensions.Height}");
+        }
+        handledHandles.Add(hWnd);
+    }
+
+    (int X, int Y, int Width, int Height) CalculateTargetDimensions(WindowConfig config, RECT currentRect) =>
+        (config.ControlPosition ? config.TargetX : currentRect.Left,
+         config.ControlPosition ? config.TargetY : currentRect.Top,
+         config.ControlSize ? config.TargetWidth : currentRect.Width,
+         config.ControlSize ? config.TargetHeight : currentRect.Height);
+
+    bool ShouldApplyWindowChanges(WindowConfig config, RECT currentRect, (int X, int Y, int Width, int Height) targetDimensions)
+    {
+        bool needsMove = config.ControlPosition && (currentRect.Left != targetDimensions.X || currentRect.Top != targetDimensions.Y);
+        bool needsResize = config.ControlSize && (currentRect.Width != targetDimensions.Width || currentRect.Height != targetDimensions.Height);
+        return needsMove || needsResize;
     }
 
     public void Dispose()

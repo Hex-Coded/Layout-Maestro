@@ -143,7 +143,7 @@
             tabControlMain.Location = new Point(0, 0);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(984, 521);
+            tabControlMain.Size = new Size(1184, 521);
             tabControlMain.TabIndex = 0;
             // 
             // tabPageProfiles
@@ -154,7 +154,7 @@
             tabPageProfiles.Location = new Point(4, 24);
             tabPageProfiles.Name = "tabPageProfiles";
             tabPageProfiles.Padding = new Padding(3);
-            tabPageProfiles.Size = new Size(976, 493);
+            tabPageProfiles.Size = new Size(1176, 493);
             tabPageProfiles.TabIndex = 0;
             tabPageProfiles.Text = "Profiles & Windows";
             tabPageProfiles.UseVisualStyleBackColor = true;
@@ -163,7 +163,7 @@
             // 
             checkBoxDisableProgram.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             checkBoxDisableProgram.AutoSize = true;
-            checkBoxDisableProgram.Location = new Point(808, 7);
+            checkBoxDisableProgram.Location = new Point(1008, 7);
             checkBoxDisableProgram.Name = "checkBoxDisableProgram";
             checkBoxDisableProgram.Size = new Size(156, 19);
             checkBoxDisableProgram.TabIndex = 2;
@@ -182,7 +182,7 @@
             groupBoxWindowConfigs.Controls.Add(dataGridViewWindowConfigs);
             groupBoxWindowConfigs.Location = new Point(200, 30);
             groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
-            groupBoxWindowConfigs.Size = new Size(770, 457);
+            groupBoxWindowConfigs.Size = new Size(970, 457);
             groupBoxWindowConfigs.TabIndex = 1;
             groupBoxWindowConfigs.TabStop = false;
             groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
@@ -218,7 +218,7 @@
             flowLayoutPanelItemActions.Controls.Add(buttonFetchSize);
             flowLayoutPanelItemActions.Location = new Point(6, 411);
             flowLayoutPanelItemActions.Name = "flowLayoutPanelItemActions";
-            flowLayoutPanelItemActions.Size = new Size(758, 33);
+            flowLayoutPanelItemActions.Size = new Size(958, 33);
             flowLayoutPanelItemActions.TabIndex = 4;
             // 
             // buttonAddWindowConfig
@@ -301,7 +301,7 @@
             flowLayoutPanelProfileActions.Controls.Add(buttonTestSelectedProfile);
             flowLayoutPanelProfileActions.Location = new Point(6, 346);
             flowLayoutPanelProfileActions.Name = "flowLayoutPanelProfileActions";
-            flowLayoutPanelProfileActions.Size = new Size(758, 33);
+            flowLayoutPanelProfileActions.Size = new Size(958, 33);
             flowLayoutPanelProfileActions.TabIndex = 2;
             // 
             // buttonLaunchAllProfileApps
@@ -362,7 +362,7 @@
             dataGridViewWindowConfigs.MultiSelect = false;
             dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
             dataGridViewWindowConfigs.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewWindowConfigs.Size = new Size(757, 297);
+            dataGridViewWindowConfigs.Size = new Size(957, 297);
             dataGridViewWindowConfigs.TabIndex = 0;
             dataGridViewWindowConfigs.CellEndEdit += dataGridViewWindowConfigs_CellEndEdit;
             dataGridViewWindowConfigs.SelectionChanged += dataGridViewWindowConfigs_SelectionChanged;
@@ -456,7 +456,7 @@
             tabPageSettings.Location = new Point(4, 24);
             tabPageSettings.Name = "tabPageSettings";
             tabPageSettings.Padding = new Padding(3);
-            tabPageSettings.Size = new Size(776, 493);
+            tabPageSettings.Size = new Size(976, 493);
             tabPageSettings.TabIndex = 1;
             tabPageSettings.Text = "Application Settings";
             tabPageSettings.UseVisualStyleBackColor = true;
@@ -504,7 +504,7 @@
             buttonSaveChanges.Dock = DockStyle.Bottom;
             buttonSaveChanges.Location = new Point(0, 521);
             buttonSaveChanges.Name = "buttonSaveChanges";
-            buttonSaveChanges.Size = new Size(984, 40);
+            buttonSaveChanges.Size = new Size(1184, 40);
             buttonSaveChanges.TabIndex = 1;
             buttonSaveChanges.Text = "Save All Changes";
             buttonSaveChanges.UseVisualStyleBackColor = true;
@@ -514,7 +514,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(984, 561);
+            ClientSize = new Size(1184, 561);
             Controls.Add(tabControlMain);
             Controls.Add(buttonSaveChanges);
             MinimumSize = new Size(700, 520);
