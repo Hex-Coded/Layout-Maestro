@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace WindowPlacementManager;
 
@@ -8,42 +10,104 @@ public partial class FormSelectProcess : Form
     public IntPtr SelectedWindowHandle { get; private set; }
     public string SelectedWindowTitle { get; private set; }
 
+    public class WindowSelectionInfo
+    {
+        public IntPtr HWnd { get; set; }
+        public string Title { get; set; }
+        public string ProcessName { get; set; }
+        public int ProcessId { get; set; }
+
+        public override string ToString() => $"[{ProcessName} ({ProcessId})] {Title}";
+    }
+
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
 
     public FormSelectProcess() => InitializeComponent();
 
-    void FormSelectProcess_Load(object sender, EventArgs e) => PopulateProcessList();
+    void FormSelectProcess_Load(object sender, EventArgs e) => LoadWindowsToList();
 
-    void PopulateProcessList()
+    private void LoadWindowsToList()
     {
         listViewProcesses.Items.Clear();
-        var processesWithWindows = Process.GetProcesses()
-            .Where(p => p.MainWindowHandle != IntPtr.Zero && !string.IsNullOrEmpty(p.MainWindowTitle))
-            .OrderBy(p => p.ProcessName)
-            .ThenBy(p => p.MainWindowTitle);
+        List<WindowSelectionInfo> windows = new List<WindowSelectionInfo>();
 
-        foreach(var proc in processesWithWindows)
+        EnumWindows((hWnd, lParam) =>
         {
+            if(!IsWindowVisible(hWnd))
+                return true;
+
+            StringBuilder titleBuilder = new StringBuilder(256);
+            GetWindowText(hWnd, titleBuilder, titleBuilder.Capacity);
+            string windowTitle = titleBuilder.ToString();
+
+            if(string.IsNullOrWhiteSpace(windowTitle) || windowTitle.Length < 2)
+                return true;
+
+            GetWindowThreadProcessId(hWnd, out uint pid);
+            if(pid == 0)
+                return true;
+
+            string procName = "N/A";
+            Process process = null;
             try
             {
-                var item = new ListViewItem(proc.ProcessName);
-                item.SubItems.Add(proc.Id.ToString());
-                item.SubItems.Add(proc.MainWindowTitle);
-                item.Tag = new Tuple<Process, IntPtr, string>(proc, proc.MainWindowHandle, proc.MainWindowTitle);
-                listViewProcesses.Items.Add(item);
+                process = Process.GetProcessById((int)pid);
+                procName = process.ProcessName;
             }
-            catch(Exception ex)
+            catch
             {
-                Debug.WriteLine($"Error listing process {proc.Id}: {ex.Message}");
+                return true;
             }
+
+            windows.Add(new WindowSelectionInfo
+            {
+                HWnd = hWnd,
+                Title = windowTitle,
+                ProcessName = procName,
+                ProcessId = (int)pid
+            });
+            return true;
+        }, IntPtr.Zero);
+
+        foreach(var winInfo in windows.OrderBy(w => w.ProcessName).ThenBy(w => w.Title))
+        {
+            var item = new ListViewItem(winInfo.ProcessName);
+            item.SubItems.Add(winInfo.ProcessId.ToString());
+            item.SubItems.Add(winInfo.Title);
+            item.Tag = winInfo;
+            listViewProcesses.Items.Add(item);
         }
+
         if(listViewProcesses.Items.Count > 0)
         {
             listViewProcesses.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-            listViewProcesses.Columns[2].Width = Math.Max(300, listViewProcesses.Columns[2].Width);
+            if(listViewProcesses.Columns.Count > 2)
+            {
+                listViewProcesses.Columns[2].Width = Math.Max(350, listViewProcesses.Columns[2].Width);
+            }
+            else
+            {
+            }
         }
     }
 
-    void buttonRefresh_Click(object sender, EventArgs e) => PopulateProcessList();
+
+    void buttonRefresh_Click(object sender, EventArgs e) => LoadWindowsToList();
 
     void listViewProcesses_SelectedIndexChanged(object sender, EventArgs e) => buttonSelect.Enabled = listViewProcesses.SelectedItems.Count > 0;
 
@@ -51,12 +115,25 @@ public partial class FormSelectProcess : Form
     {
         if(listViewProcesses.SelectedItems.Count > 0)
         {
-            var selection = (Tuple<Process, IntPtr, string>)listViewProcesses.SelectedItems[0].Tag;
-            SelectedProcess = selection.Item1;
-            SelectedWindowHandle = selection.Item2;
-            SelectedWindowTitle = selection.Item3;
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            var selectedWinInfo = listViewProcesses.SelectedItems[0].Tag as WindowSelectionInfo;
+            if(selectedWinInfo != null)
+            {
+                try
+                {
+                    SelectedProcess = Process.GetProcessById(selectedWinInfo.ProcessId);
+                }
+                catch(ArgumentException)
+                {
+                    MessageBox.Show($"The process '{selectedWinInfo.ProcessName}' (PID: {selectedWinInfo.ProcessId}) is no longer running.", "Process Exited", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadWindowsToList();
+                    return;
+                }
+                SelectedWindowHandle = selectedWinInfo.HWnd;
+                SelectedWindowTitle = selectedWinInfo.Title;
+
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
         }
     }
 
