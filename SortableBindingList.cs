@@ -2,9 +2,9 @@
 
 public class SortableBindingList<T> : BindingList<T>
 {
-    bool _isSorted;
-    ListSortDirection _sortDirection = ListSortDirection.Ascending;
-    PropertyDescriptor _sortProperty;
+    bool isSorted;
+    ListSortDirection sortDirection = ListSortDirection.Ascending;
+    PropertyDescriptor sortProperty;
 
     public SortableBindingList() : base()
     {
@@ -16,20 +16,20 @@ public class SortableBindingList<T> : BindingList<T>
 
     protected override bool SupportsSortingCore => true;
 
-    protected override bool IsSortedCore => _isSorted;
+    protected override bool IsSortedCore => isSorted;
 
-    protected override ListSortDirection SortDirectionCore => _sortDirection;
+    protected override ListSortDirection SortDirectionCore => sortDirection;
 
-    protected override PropertyDescriptor SortPropertyCore => _sortProperty;
+    protected override PropertyDescriptor SortPropertyCore => sortProperty;
 
     protected override void ApplySortCore(PropertyDescriptor prop, ListSortDirection direction)
     {
-        _sortProperty = prop;
-        _sortDirection = direction;
+        sortProperty = prop;
+        sortDirection = direction;
 
         if(prop == null)
         {
-            _isSorted = false;
+            isSorted = false;
         }
         else
         {
@@ -41,7 +41,7 @@ public class SortableBindingList<T> : BindingList<T>
 
             itemsList.Sort(Compare);
 
-            _isSorted = true;
+            isSorted = true;
         }
 
         OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
@@ -49,11 +49,11 @@ public class SortableBindingList<T> : BindingList<T>
 
     int Compare(T x, T y)
     {
-        if(_sortProperty == null)
+        if(sortProperty == null)
             return 0;
 
-        object xValue = _sortProperty.GetValue(x);
-        object yValue = _sortProperty.GetValue(y);
+        object xValue = sortProperty.GetValue(x);
+        object yValue = sortProperty.GetValue(y);
 
         int comparisonResult;
 
@@ -82,13 +82,13 @@ public class SortableBindingList<T> : BindingList<T>
             comparisonResult = xValue.ToString().CompareTo(yValue.ToString());
         }
 
-        return _sortDirection == ListSortDirection.Ascending ? comparisonResult : -comparisonResult;
+        return sortDirection == ListSortDirection.Ascending ? comparisonResult : -comparisonResult;
     }
 
     protected override void RemoveSortCore()
     {
-        _isSorted = false;
-        _sortProperty = null;
+        isSorted = false;
+        sortProperty = null;
         OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
     }
 }

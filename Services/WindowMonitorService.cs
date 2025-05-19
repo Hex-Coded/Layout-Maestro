@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
 using WindowPlacementManager.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WindowPlacementManager.Services;
 
@@ -9,193 +12,139 @@ public class WindowMonitorService : IDisposable
     readonly WindowActionService windowActionService;
     AppSettingsData currentSettings;
     Profile activeProfile;
-    readonly HashSet<IntPtr> handledWindowHandlesThisCycle;
     System.Windows.Forms.Timer timer;
     bool isProgramActivityDisabled = true;
 
     readonly Dictionary<string, int> autoRelaunchLastKnownPids = new();
-    readonly Dictionary<string, DateTime> autoRelaunchLastAttemptTimestamps = new();
-    const int RelaunchCooldownSeconds = 10;
+    readonly Dictionary<string, DateTime> autoRelaunchLastLaunchAttemptTime = new();
+    const int MinSecondsBetweenLaunchAttempts = 15;
 
+    readonly Dictionary<string, WindowConfig> pendingPositioningTasks = new();
+    readonly object pendingPositioningLock = new object();
 
     public WindowMonitorService(SettingsManager settingsManager, WindowActionService windowActionService)
     {
         this.settingsManager = settingsManager;
         this.windowActionService = windowActionService;
-        handledWindowHandlesThisCycle = new HashSet<IntPtr>();
     }
 
-    public void LoadAndApplySettings()
-    {
-        currentSettings = settingsManager.LoadSettings();
-        isProgramActivityDisabled = currentSettings.DisableProgramActivity;
-        if(isProgramActivityDisabled)
-        {
-            autoRelaunchLastKnownPids.Clear();
-            autoRelaunchLastAttemptTimestamps.Clear();
-        }
-    }
-
+    public void LoadAndApplySettings() { currentSettings = settingsManager.LoadSettings(); isProgramActivityDisabled = currentSettings.DisableProgramActivity; if(isProgramActivityDisabled) ClearAllMonitoringState(); else if(activeProfile != null) ProcessAutoRelaunchAndPositioningState(initialSetup: true); }
     public string GetActiveProfileNameFromSettings() => settingsManager.LoadSettings().ActiveProfileName;
 
     public void UpdateActiveProfileReference(Profile liveProfile)
     {
-        bool profileEffectivelyChanged = activeProfile?.Name != liveProfile?.Name || activeProfile == null || liveProfile == null;
-
+        bool profileChanged = activeProfile?.Name != liveProfile?.Name || (activeProfile == null) != (liveProfile == null);
         activeProfile = liveProfile;
-        Debug.WriteLine($"WindowMonitorService: Active profile reference updated to '{liveProfile?.Name ?? "null"}'.");
-
-        if(profileEffectivelyChanged || isProgramActivityDisabled)
-        {
-            autoRelaunchLastKnownPids.Clear();
-            autoRelaunchLastAttemptTimestamps.Clear();
-        }
+        Debug.WriteLine($"WMS: Active profile updated to '{liveProfile?.Name ?? "null"}'. Profile effectively changed: {profileChanged}");
+        if(profileChanged) ClearAllMonitoringState();
+        ProcessAutoRelaunchAndPositioningState(initialSetup: profileChanged);
     }
 
     public void SetPositioningActive(bool isActive)
     {
+        bool wasProgramDisabled = isProgramActivityDisabled;
         isProgramActivityDisabled = !isActive;
-        Debug.WriteLine($"WindowMonitorService: PositioningActive set to {isActive}. IsProgramActivityDisabled: {isProgramActivityDisabled}");
-        if(isProgramActivityDisabled)
-        {
-            autoRelaunchLastKnownPids.Clear();
-            autoRelaunchLastAttemptTimestamps.Clear();
-        }
+        Debug.WriteLine($"WMS: Program activity active: {isActive}. Was disabled: {wasProgramDisabled}");
+        if(isProgramActivityDisabled) ClearAllMonitoringState();
+        else if(wasProgramDisabled && activeProfile != null)
+            ProcessAutoRelaunchAndPositioningState(initialSetup: true);
     }
 
-    public void InitializeTimer()
+    void ClearAllMonitoringState()
     {
-        if(timer != null) { Debug.WriteLine("WindowMonitorService Timer already initialized."); return; }
-        timer = new System.Windows.Forms.Timer { Interval = 1000 };
-        timer.Tick += Timer_Tick;
-        timer.Start();
-        Debug.WriteLine("WindowMonitorService Timer Initialized and Started (1s interval).");
+        Debug.WriteLine("WMS: Clearing all monitoring state.");
+        autoRelaunchLastKnownPids.Clear();
+        autoRelaunchLastLaunchAttemptTime.Clear();
+        lock(pendingPositioningLock) pendingPositioningTasks.Clear();
     }
+
+    public void InitializeTimer() { if(timer != null) return; timer = new System.Windows.Forms.Timer { Interval = 1500 }; timer.Tick += Timer_Tick; timer.Start(); Debug.WriteLine("WMS Timer Initialized (1.5s)."); }
+
+    public void NotifyAppLaunched(WindowConfig config) { if(config == null || isProgramActivityDisabled) return; if(!config.ControlPosition && !config.ControlSize) return; string configKey = GetConfigKeyForPositioning(config); lock(pendingPositioningLock) pendingPositioningTasks[configKey] = config; Debug.WriteLine($"WMS: Queued '{config.ProcessName}' for positioning."); }
+    string GetConfigKeyForPositioning(WindowConfig config) => config.ProcessName.ToLowerInvariant() + (config.ExecutablePath ?? "");
+    string GetConfigKeyForAutoRL(WindowConfig config) => config.ProcessName.ToLowerInvariant() + (config.ExecutablePath ?? "");
+
 
     void Timer_Tick(object sender, EventArgs e)
     {
         if(isProgramActivityDisabled || activeProfile == null) return;
-
-        ProactiveAutoRelaunchCheckAndLaunch();
-        ProcessWindowPositioningLogic();
+        ProcessAutoRelaunchAndPositioningState(initialSetup: false);
     }
 
-    void ProactiveAutoRelaunchCheckAndLaunch()
+    void ProcessAutoRelaunchAndPositioningState(bool initialSetup)
     {
-        if(activeProfile == null || !activeProfile.WindowConfigs.Any()) return;
+        if(isProgramActivityDisabled || activeProfile == null) return;
 
-
-        foreach(var config in activeProfile.WindowConfigs.Where(c => c.IsEnabled && c.AutoRelaunchEnabled))
+        var configsForAutoRL = activeProfile.WindowConfigs.Where(c => c.IsEnabled && c.AutoRelaunchEnabled).ToList();
+        if(configsForAutoRL.Any() || autoRelaunchLastKnownPids.Any())
         {
-            string configKey = GetConfigKey(config);
-
-            WindowEnumerationService.FoundWindowInfo foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
-            Process currentProcess = foundWindow?.GetProcess();
-
-            if(currentProcess != null && !currentProcess.HasExited)
+            foreach(var config in configsForAutoRL)
             {
-                autoRelaunchLastKnownPids[configKey] = currentProcess.Id;
-                if(autoRelaunchLastAttemptTimestamps.ContainsKey(configKey))
-                    autoRelaunchLastAttemptTimestamps.Remove(configKey);
-                currentProcess.Dispose();
-            }
-            else
-            {
-                bool specificInstanceExited = false;
-                if(autoRelaunchLastKnownPids.TryGetValue(configKey, out int lastPid))
+                string configKey = GetConfigKeyForAutoRL(config);
+                WindowEnumerationService.FoundWindowInfo foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
+                Process currentProcess = foundWindow?.GetProcess();
+
+                bool isCurrentlyRunning = (currentProcess != null && !currentProcess.HasExited);
+
+                if(isCurrentlyRunning)
                 {
-                    try
-                    {
-                        Process p = Process.GetProcessById(lastPid);
-                        if(p.HasExited) specificInstanceExited = true;
-                        p.Dispose();
-                    }
-                    catch(ArgumentException) { specificInstanceExited = true; }
-                    catch(InvalidOperationException) { specificInstanceExited = true; }
+                    autoRelaunchLastKnownPids[configKey] = currentProcess.Id;
+                    autoRelaunchLastLaunchAttemptTime.Remove(configKey);
+                    Debug.WriteLineIf(initialSetup, $"WMS: AutoRL: '{config.ProcessName}' (PID: {currentProcess.Id}) is running. Monitoring.");
                 }
-
-                bool needsLaunch = !autoRelaunchLastKnownPids.ContainsKey(configKey) || specificInstanceExited || (currentProcess == null || currentProcess.HasExited);
-
-                if(needsLaunch)
+                else
                 {
-                    if(autoRelaunchLastAttemptTimestamps.TryGetValue(configKey, out DateTime lastAttempt) &&
-                        (DateTime.UtcNow - lastAttempt).TotalSeconds < RelaunchCooldownSeconds)
+                    if(autoRelaunchLastLaunchAttemptTime.TryGetValue(configKey, out DateTime lastAttemptTime) &&
+                        (DateTime.UtcNow - lastAttemptTime).TotalSeconds < MinSecondsBetweenLaunchAttempts)
                     {
-                        Debug.WriteLine($"AutoRelaunch: Skipping launch for '{config.ProcessName}' due to cooldown.");
+                        Debug.WriteLine($"WMS: AutoRL: '{config.ProcessName}' launch attempt is recent. Waiting for it to settle or UAC. Cooldown active.");
                         continue;
                     }
 
-                    Debug.WriteLine($"AutoRelaunch: Process for '{config.ProcessName}' (key: {configKey}) not running or exited. Attempting launch.");
-                    bool launched = windowActionService.LaunchApp(config);
-                    autoRelaunchLastAttemptTimestamps[configKey] = DateTime.UtcNow;
-
-                    if(launched)
+                    bool specificInstanceExited = false;
+                    if(autoRelaunchLastKnownPids.TryGetValue(configKey, out int lastPid))
                     {
-                        Debug.WriteLine($"AutoRelaunch: Launch initiated for '{config.ProcessName}'. Will find new PID on next tick.");
-                        autoRelaunchLastKnownPids.Remove(configKey);
+                        try { using Process p = Process.GetProcessById(lastPid); { if(p.HasExited) specificInstanceExited = true; } }
+                        catch { specificInstanceExited = true; }
                     }
-                    else
+
+                    if(initialSetup || specificInstanceExited || !autoRelaunchLastKnownPids.ContainsKey(configKey))
                     {
-                        Debug.WriteLine($"AutoRelaunch: Launch FAILED for '{config.ProcessName}'. Will retry after cooldown.");
+                        Debug.WriteLine($"WMS: AutoRL: '{config.ProcessName}' (key: {configKey}) needs launch (Initial: {initialSetup}, Exited: {specificInstanceExited}, Not known: {!autoRelaunchLastKnownPids.ContainsKey(configKey)}).");
+
+                        autoRelaunchLastLaunchAttemptTime[configKey] = DateTime.UtcNow;
+
+                        if(windowActionService.LaunchApp(config, supressErrorDialogs: true))
+                        {
+                            Debug.WriteLine($"WMS: AutoRL: Launch initiated for '{config.ProcessName}'.");
+                            autoRelaunchLastKnownPids.Remove(configKey);
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"WMS: AutoRL: Launch FAILED for '{config.ProcessName}'. Cooldown will apply.");
+                        }
                     }
                 }
+                currentProcess?.Dispose();
+            }
+
+            var activeRLConfigKeys = new HashSet<string>(configsForAutoRL.Select(GetConfigKeyForAutoRL));
+            var pidsToRemove = autoRelaunchLastKnownPids.Keys.Where(k => !activeRLConfigKeys.Contains(k)).ToList();
+            foreach(var keyToRemove in pidsToRemove)
+            {
+                autoRelaunchLastKnownPids.Remove(keyToRemove);
+                autoRelaunchLastLaunchAttemptTime.Remove(keyToRemove);
+                Debug.WriteLine($"WMS: AutoRL: Stopped tracking PID for config key '{keyToRemove}' (no longer AutoRL enabled).");
             }
         }
+
+
+        ProcessPendingPositioningTasks();
     }
 
-    string GetConfigKey(WindowConfig config) => config.ProcessName.ToLowerInvariant();
 
-
-    void ProcessWindowPositioningLogic()
-    {
-        if(activeProfile == null || isProgramActivityDisabled) return;
-        if(!activeProfile.WindowConfigs.Any(c => c.IsEnabled && (c.ControlPosition || c.ControlSize))) return;
-
-        handledWindowHandlesThisCycle.Clear();
-        var configsForPositioning = new List<WindowConfig>(activeProfile.WindowConfigs.Where(c => c.IsEnabled));
-        ProcessWindowConfigurations(configsForPositioning, handledWindowHandlesThisCycle, false, "ProcessWindows");
-    }
-
-    public void TestProfileLayout(Profile profileToTest)
-    {
-        if(profileToTest == null || !profileToTest.WindowConfigs.Any()) { Debug.WriteLine("TestProfileLayout: Profile null or no configs."); return; }
-        HashSet<IntPtr> handledHWndsThisTest = new HashSet<IntPtr>();
-        ProcessWindowConfigurations(profileToTest.WindowConfigs.Where(c => c.IsEnabled), handledHWndsThisTest, true, "TestProfileLayout");
-        Debug.WriteLine("TestProfileLayout: Completed.");
-    }
-
-    void ProcessWindowConfigurations(IEnumerable<WindowConfig> configs, HashSet<IntPtr> handledHandles, bool alwaysApply, string logContext)
-    {
-        foreach(var config in configs) ApplyConfigurationToSingleWindow(config, handledHandles, alwaysApply, logContext);
-    }
-
-    void ApplyConfigurationToSingleWindow(WindowConfig config, HashSet<IntPtr> handledHandles, bool alwaysApply, string logContext)
-    {
-        if(string.IsNullOrWhiteSpace(config.ProcessName)) return;
-        if(!config.ControlPosition && !config.ControlSize && logContext != "TestProfileLayout") return;
-
-        var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
-        if(foundWindow == null || foundWindow.HWnd == IntPtr.Zero)
-        {
-            if(logContext == "TestProfileLayout") Debug.WriteLine($"{logContext}: Window not found for '{config.ProcessName}' Hint:'{config.WindowTitleHint}'.");
-            return;
-        }
-        IntPtr hWnd = foundWindow.HWnd;
-        if(handledHandles.Contains(hWnd) && logContext != "TestProfileLayout") return;
-        if(!Native.GetWindowRect(hWnd, out RECT currentRect)) return;
-
-        var targetDimensions = CalculateTargetDimensions(config, currentRect);
-        if(targetDimensions.Width <= 0 || targetDimensions.Height <= 0) { Debug.WriteLine($"{logContext}: Invalid target dims for {config.ProcessName} (hWnd:{hWnd}) W:{targetDimensions.Width} H:{targetDimensions.Height}"); return; }
-
-        bool needsChange = ShouldApplyWindowChanges(config, currentRect, targetDimensions);
-        if(alwaysApply || needsChange)
-        {
-            Native.MoveWindow(hWnd, targetDimensions.X, targetDimensions.Y, targetDimensions.Width, targetDimensions.Height, true);
-            Debug.WriteLine($"{logContext}: Positioned/Resized '{config.ProcessName}' (hWnd:{hWnd}) X:{targetDimensions.X} Y:{targetDimensions.Y} W:{targetDimensions.Width} H:{targetDimensions.Height}");
-        }
-        if(logContext != "TestProfileLayout") handledHandles.Add(hWnd);
-    }
-    (int X, int Y, int Width, int Height) CalculateTargetDimensions(WindowConfig config, RECT currentRect) => (config.ControlPosition ? config.TargetX : currentRect.Left, config.ControlPosition ? config.TargetY : currentRect.Top, config.ControlSize ? config.TargetWidth : currentRect.Width, config.ControlSize ? config.TargetHeight : currentRect.Height);
-    bool ShouldApplyWindowChanges(WindowConfig config, RECT currentRect, (int X, int Y, int Width, int Height) targetDimensions) => (config.ControlPosition && (currentRect.Left != targetDimensions.X || currentRect.Top != targetDimensions.Y)) || (config.ControlSize && (currentRect.Width != targetDimensions.Width || currentRect.Height != targetDimensions.Height));
-    public void Dispose() { timer?.Stop(); timer?.Dispose(); timer = null; Debug.WriteLine("WindowMonitorService Timer Disposed."); }
+    void ProcessPendingPositioningTasks() { if(!pendingPositioningTasks.Any()) return; List<string> completedConfigKeys = new List<string>(); Dictionary<string, WindowConfig> currentPendingTasksSnapshot; lock(pendingPositioningLock) { currentPendingTasksSnapshot = new Dictionary<string, WindowConfig>(pendingPositioningTasks); } if(!currentPendingTasksSnapshot.Any()) return; Debug.WriteLine($"WMS: Processing {currentPendingTasksSnapshot.Count} pending positioning tasks."); foreach(var entry in currentPendingTasksSnapshot) { string configKey = entry.Key; WindowConfig config = entry.Value; if(config == null) { Debug.WriteLine($"WMS: ERROR - Null config in pending tasks for key '{configKey}'."); completedConfigKeys.Add(configKey); continue; } Debug.WriteLine($"WMS: Positioning: Checking '{config.ProcessName}' (key: {configKey})"); WindowEnumerationService.FoundWindowInfo foundWindow = null; try { foundWindow = WindowEnumerationService.FindMostSuitableWindow(config); } catch(Exception ex) { Debug.WriteLine($"WMS: Positioning: Exception FindMostSuitableWindow for '{config.ProcessName}': {ex.Message}"); continue; } if(foundWindow != null && foundWindow.HWnd != IntPtr.Zero) { Debug.WriteLine($"WMS: Positioning: Found '{config.ProcessName}'. Applying settings ONCE."); if(ApplySettingsToWindow(config, foundWindow.HWnd)) { completedConfigKeys.Add(configKey); } } else { Debug.WriteLine($"WMS: Positioning: Window for '{config.ProcessName}' not yet found."); } } if(completedConfigKeys.Any()) { lock(pendingPositioningLock) { foreach(string key in completedConfigKeys) pendingPositioningTasks.Remove(key); } Debug.WriteLine($"WMS: Positioning: Removed {completedConfigKeys.Count} tasks."); } }
+    bool ApplySettingsToWindow(WindowConfig config, IntPtr hWnd) { if(config == null || hWnd == IntPtr.Zero) return true; if(!config.ControlPosition && !config.ControlSize) return true; if(!Native.GetWindowRect(hWnd, out RECT currentRect)) { Debug.WriteLine($"WMS: Pos: Failed GetWindowRect for {config.ProcessName}"); return false; } int targetX = config.ControlPosition ? config.TargetX : currentRect.Left; int targetY = config.ControlPosition ? config.TargetY : currentRect.Top; int targetWidth = config.ControlSize ? config.TargetWidth : currentRect.Width; int targetHeight = config.ControlSize ? config.TargetHeight : currentRect.Height; if(targetWidth <= 0 || targetHeight <= 0) { Debug.WriteLine($"WMS: Pos: Invalid target dims for {config.ProcessName}"); return true; } Native.MoveWindow(hWnd, targetX, targetY, targetWidth, targetHeight, true); Debug.WriteLine($"WMS: Pos: Applied ONCE to {config.ProcessName}"); return true; }
+    public void TestProfileLayout(Profile profileToTest) { if(profileToTest == null || !profileToTest.WindowConfigs.Any() || isProgramActivityDisabled) return; Debug.WriteLine($"WMS: TestProfileLayout for '{profileToTest.Name}'"); foreach(var config in profileToTest.WindowConfigs.Where(c => c.IsEnabled)) { var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config); if(foundWindow?.HWnd != IntPtr.Zero) ApplySettingsToWindow(config, foundWindow.HWnd); else Debug.WriteLine($"WMS: Test: Win not found for '{config.ProcessName}'."); } Debug.WriteLine("WMS: TestProfileLayout completed."); }
+    public void Dispose() { timer?.Stop(); timer?.Dispose(); timer = null; Debug.WriteLine("WMS Timer Disposed."); }
 }

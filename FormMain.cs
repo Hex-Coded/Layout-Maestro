@@ -7,79 +7,85 @@ namespace WindowPlacementManager;
 
 public partial class FormMain : Form
 {
-    readonly SettingsManager _settingsManager;
-    readonly StartupManager _startupManager;
-    readonly WindowMonitorService _windowMonitorService;
-    readonly WindowActionService _windowActionService;
+    readonly SettingsManager settingsManager;
+    readonly StartupManager startupManager;
+    readonly WindowMonitorService windowMonitorService;
+    readonly WindowActionService windowActionService;
 
-    AppSettingsData _appSettings;
-    Profile _selectedProfileForEditing;
-    bool _isFormLoaded = false;
+    AppSettingsData appSettings;
+    Profile selectedProfileForEditing;
+    bool isFormLoaded = false;
 
     public FormMain()
     {
         InitializeComponent();
-        _settingsManager = new SettingsManager();
-        _startupManager = new StartupManager();
-        _windowActionService = new WindowActionService();
-        _windowMonitorService = new WindowMonitorService(_settingsManager, _windowActionService);
+        settingsManager = new SettingsManager();
+        startupManager = new StartupManager();
+        windowActionService = new WindowActionService();
+        windowMonitorService = new WindowMonitorService(settingsManager, windowActionService);
+
+        WindowActionService.AppLaunchedForPositioning += windowMonitorService.NotifyAppLaunched;
+
         TrayIconUIManager.InitializeNotifyIcon(this.notifyIconMain);
+    }
+
+    void FormMain_FormClosed(object sender, FormClosedEventArgs e)
+    {
+        WindowActionService.AppLaunchedForPositioning -= windowMonitorService.NotifyAppLaunched;
     }
 
 
     async void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
     {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
 
         buttonLaunchAllProfileApps.Enabled = false;
         try
         {
-            await _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+            await windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing,
                 launchIfNotRunning: true,
                 bringToForegroundIfRunning: false,
-                closeIfRunning: false,
-                delayBetweenLaunchesMs: 200);
+                closeIfRunning: false);
         }
         finally
         {
             buttonLaunchAllProfileApps.Enabled = true;
-            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
 
     async void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
     {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         buttonFocusAllProfileApps.Enabled = false;
         try
         {
-            await _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+            await windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing,
                 launchIfNotRunning: false,
                 bringToForegroundIfRunning: true,
-                closeIfRunning: false,
-                delayBetweenLaunchesMs: 100);
+                closeIfRunning: false);
         }
         finally
         {
             buttonFocusAllProfileApps.Enabled = true;
-            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
 
     void UpdateAllButtonStates()
     {
-        ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
+        ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         WindowConfigGridUIManager.UpdateSelectionDependentButtons(dataGridViewWindowConfigs, buttonRemoveWindowConfig, buttonActivateLaunchApp, buttonFocus, buttonCloseApp, buttonFetchPosition, buttonFetchSize);
-        ProfileUIManager.UpdateProfileManagementButtons(buttonRemoveProfile, buttonRenameProfile, buttonCloneProfile, buttonAddWindowConfig, _selectedProfileForEditing != null, _appSettings.Profiles.Count);
+        ProfileUIManager.UpdateProfileManagementButtons(buttonRemoveProfile, buttonRenameProfile, buttonCloneProfile, buttonAddWindowConfig, selectedProfileForEditing != null, appSettings.Profiles.Count);
     }
 
     void dataGridViewWindowConfigs_SelectionChanged(object sender, EventArgs e) => UpdateAllButtonStates();
 
     void FormMain_Load(object sender, EventArgs e)
     {
-        _isFormLoaded = false;
+        isFormLoaded = false;
 
         LoadAppSettingsAndInitializeMonitorServiceGlobals();
 
@@ -94,71 +100,71 @@ public partial class FormMain : Form
 
         dataGridViewWindowConfigs.CellValueChanged += dataGridViewWindowConfigs_CellValueChanged;
 
-        _windowMonitorService.InitializeTimer();
+        windowMonitorService.InitializeTimer();
 
-        _isFormLoaded = true;
+        isFormLoaded = true;
 
         HandleDisableProgramActivityChanged();
     }
 
     void LoadAppSettingsAndInitializeMonitorServiceGlobals()
     {
-        _appSettings = _settingsManager.LoadSettings();
-        if(!_appSettings.Profiles.Any())
+        appSettings = settingsManager.LoadSettings();
+        if(!appSettings.Profiles.Any())
         {
             var defaultProfile = new Profile("Default Profile");
-            _appSettings.Profiles.Add(defaultProfile);
-            _appSettings.ActiveProfileName = defaultProfile.Name;
-            _settingsManager.SaveSettings(_appSettings);
-            _appSettings = _settingsManager.LoadSettings();
+            appSettings.Profiles.Add(defaultProfile);
+            appSettings.ActiveProfileName = defaultProfile.Name;
+            settingsManager.SaveSettings(appSettings);
+            appSettings = settingsManager.LoadSettings();
         }
-        _windowMonitorService.LoadAndApplySettings();
+        windowMonitorService.LoadAndApplySettings();
     }
 
     void SetupInitialActiveProfile()
     {
-        string initialActiveProfileName = _windowMonitorService.GetActiveProfileNameFromSettings();
-        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, initialActiveProfileName);
+        string initialActiveProfileName = windowMonitorService.GetActiveProfileNameFromSettings();
+        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, initialActiveProfileName);
 
-        _selectedProfileForEditing = comboBoxActiveProfile.SelectedItem as Profile;
+        selectedProfileForEditing = comboBoxActiveProfile.SelectedItem as Profile;
 
-        if(_selectedProfileForEditing == null && _appSettings.Profiles.Any())
+        if(selectedProfileForEditing == null && appSettings.Profiles.Any())
         {
-            _selectedProfileForEditing = _appSettings.Profiles.First();
-            comboBoxActiveProfile.SelectedItem = _selectedProfileForEditing;
+            selectedProfileForEditing = appSettings.Profiles.First();
+            comboBoxActiveProfile.SelectedItem = selectedProfileForEditing;
         }
 
-        _appSettings.ActiveProfileName = _selectedProfileForEditing?.Name ?? string.Empty;
+        appSettings.ActiveProfileName = selectedProfileForEditing?.Name ?? string.Empty;
 
         LoadWindowConfigsForCurrentProfile();
 
-        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
-        Debug.WriteLine($"FormMain_Load: Initial active profile '{_selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
+        windowMonitorService.UpdateActiveProfileReference(selectedProfileForEditing);
+        Debug.WriteLine($"FormMain_Load: Initial active profile '{selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
     }
 
 
     void HandleActiveProfileChange()
     {
-        if(!_isFormLoaded) return;
+        if(!isFormLoaded) return;
 
         Profile selected = comboBoxActiveProfile.SelectedItem as Profile;
-        if(_selectedProfileForEditing == selected && selected != null)
+        if(selectedProfileForEditing == selected && selected != null)
         {
         }
 
-        _selectedProfileForEditing = selected;
-        _appSettings.ActiveProfileName = selected?.Name ?? string.Empty;
+        selectedProfileForEditing = selected;
+        appSettings.ActiveProfileName = selected?.Name ?? string.Empty;
 
         LoadWindowConfigsForCurrentProfile();
 
-        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
-        Debug.WriteLine($"HandleActiveProfileChange: Profile '{_selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
+        windowMonitorService.UpdateActiveProfileReference(selectedProfileForEditing);
+        Debug.WriteLine($"HandleActiveProfileChange: Profile '{selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
         UpdateAllButtonStates();
     }
 
     void dataGridViewWindowConfigs_CellValueChanged(object sender, DataGridViewCellEventArgs e)
     {
-        if(!_isFormLoaded || e.RowIndex < 0 || _selectedProfileForEditing == null) return;
+        if(!isFormLoaded || e.RowIndex < 0 || selectedProfileForEditing == null) return;
 
         DataGridViewColumn changedColumn = dataGridViewWindowConfigs.Columns[e.ColumnIndex];
         WindowConfig changedConfig = dataGridViewWindowConfigs.Rows[e.RowIndex].DataBoundItem as WindowConfig;
@@ -172,84 +178,84 @@ public partial class FormMain : Form
             changedColumn.DataPropertyName == nameof(WindowConfig.WindowTitleHint))
         {
             Debug.WriteLine($"DGV CellValueChanged: {changedColumn.DataPropertyName} for '{changedConfig.ProcessName}'. Notifying monitor service.");
-            _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+            windowMonitorService.UpdateActiveProfileReference(selectedProfileForEditing);
         }
     }
 
     void SaveAppSettings()
     {
-        if(!_isFormLoaded) return;
+        if(!isFormLoaded) return;
 
         if(comboBoxActiveProfile.SelectedItem is Profile selectedActiveCbProfile)
-            _appSettings.ActiveProfileName = selectedActiveCbProfile.Name;
-        else if(_appSettings.Profiles.Any())
-            _appSettings.ActiveProfileName = _appSettings.Profiles.First().Name;
+            appSettings.ActiveProfileName = selectedActiveCbProfile.Name;
+        else if(appSettings.Profiles.Any())
+            appSettings.ActiveProfileName = appSettings.Profiles.First().Name;
         else
-            _appSettings.ActiveProfileName = string.Empty;
+            appSettings.ActiveProfileName = string.Empty;
 
 
         StartupType newlySelectedStartupOption = StartupOptionsUIManager.GetSelectedStartupType(comboBoxStartupOptions);
-        StartupType currentSystemStartupOption = _startupManager.GetCurrentStartupType();
+        StartupType currentSystemStartupOption = startupManager.GetCurrentStartupType();
 
         if(newlySelectedStartupOption != currentSystemStartupOption)
         {
             Debug.WriteLine($"Startup option changed from {currentSystemStartupOption} to {newlySelectedStartupOption}. Applying change.");
-            _startupManager.SetStartup(newlySelectedStartupOption);
-            _appSettings.StartupOption = newlySelectedStartupOption;
+            startupManager.SetStartup(newlySelectedStartupOption);
+            appSettings.StartupOption = newlySelectedStartupOption;
         }
         else
         {
-            _appSettings.StartupOption = newlySelectedStartupOption;
+            appSettings.StartupOption = newlySelectedStartupOption;
             Debug.WriteLine($"Startup option ({newlySelectedStartupOption}) unchanged from current system state.");
         }
 
-        _appSettings.DisableProgramActivity = checkBoxDisableProgram.Checked;
+        appSettings.DisableProgramActivity = checkBoxDisableProgram.Checked;
 
-        _settingsManager.SaveSettings(_appSettings);
-        _windowMonitorService.LoadAndApplySettings();
+        settingsManager.SaveSettings(appSettings);
+        windowMonitorService.LoadAndApplySettings();
 
-        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
-        Debug.WriteLine($"SaveAppSettings: Profile '{_selectedProfileForEditing?.Name ?? "null"}' re-passed to WindowMonitorService after save.");
+        windowMonitorService.UpdateActiveProfileReference(selectedProfileForEditing);
+        Debug.WriteLine($"SaveAppSettings: Profile '{selectedProfileForEditing?.Name ?? "null"}' re-passed to WindowMonitorService after save.");
 
         MessageBox.Show("Settings saved.", "Window Positioner", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     void HandleDisableProgramActivityChanged()
     {
-        if(!_isFormLoaded && !checkBoxDisableProgram.IsHandleCreated) return;
+        if(!isFormLoaded && !checkBoxDisableProgram.IsHandleCreated) return;
 
         bool isDisabled = checkBoxDisableProgram.Checked;
 
-        _windowMonitorService.SetPositioningActive(!isDisabled);
+        windowMonitorService.SetPositioningActive(!isDisabled);
 
         GeneralUIManager.UpdateProgramActivityUI(checkBoxDisableProgram, groupBoxWindowConfigs, groupBoxProfiles, isDisabled);
     }
 
     void UpdateUIFromSettings()
     {
-        StartupOptionsUIManager.SelectCurrentOption(comboBoxStartupOptions, _startupManager.GetCurrentStartupType());
-        checkBoxDisableProgram.Checked = _appSettings.DisableProgramActivity;
+        StartupOptionsUIManager.SelectCurrentOption(comboBoxStartupOptions, startupManager.GetCurrentStartupType());
+        checkBoxDisableProgram.Checked = appSettings.DisableProgramActivity;
     }
 
-    void LoadWindowConfigsForCurrentProfile() => WindowConfigGridUIManager.LoadWindowConfigsForProfile(dataGridViewWindowConfigs, groupBoxWindowConfigs, _selectedProfileForEditing);
+    void LoadWindowConfigsForCurrentProfile() => WindowConfigGridUIManager.LoadWindowConfigsForProfile(dataGridViewWindowConfigs, groupBoxWindowConfigs, selectedProfileForEditing);
 
     void LoadAppSettings()
     {
-        _appSettings = _settingsManager.LoadSettings();
-        if(!_appSettings.Profiles.Any())
+        appSettings = settingsManager.LoadSettings();
+        if(!appSettings.Profiles.Any())
         {
             var defaultProfile = new Profile("Default Profile");
-            _appSettings.Profiles.Add(defaultProfile);
-            _appSettings.ActiveProfileName = defaultProfile.Name;
+            appSettings.Profiles.Add(defaultProfile);
+            appSettings.ActiveProfileName = defaultProfile.Name;
         }
-        _windowMonitorService.LoadAndApplySettings();
+        windowMonitorService.LoadAndApplySettings();
     }
 
     IntPtr FindWindowForConfig(WindowConfig config) => (config == null) ? IntPtr.Zero : (WindowEnumerationService.FindMostSuitableWindow(config)?.HWnd ?? IntPtr.Zero);
 
     void buttonAddWindowConfig_Click(object sender, EventArgs e)
     {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Please select or create a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(selectedProfileForEditing == null) { MessageBox.Show("Please select or create a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
 
         using var formSelectProcess = new FormSelectProcess();
         if(formSelectProcess.ShowDialog(this) != DialogResult.OK) return;
@@ -283,7 +289,7 @@ public partial class FormMain : Form
                 TargetHeight = currentRect.Height
             };
 
-            WindowConfigGridUIManager.AddAndSelectWindowConfig(dataGridViewWindowConfigs, _selectedProfileForEditing, newConfig);
+            WindowConfigGridUIManager.AddAndSelectWindowConfig(dataGridViewWindowConfigs, selectedProfileForEditing, newConfig);
             UpdateAllButtonStates();
         }
         catch(ArgumentException argEx) { ShowProcessOrWindowError(selectedProcess.ProcessName, $"Process (PID: {selectedProcess.Id}) is no longer running or is inaccessible: {argEx.Message}", "Process Exited or Inaccessible"); }
@@ -334,86 +340,86 @@ public partial class FormMain : Form
         if(selectedConfig == null) { MessageBox.Show("Please select a window configuration.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         if(!selectedConfig.IsEnabled) { MessageBox.Show($"Configuration for '{selectedConfig.ProcessName}' is disabled.", "Action Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
 
-        var windowInfo = _windowActionService.FindManagedWindow(selectedConfig);
+        var windowInfo = windowActionService.FindManagedWindow(selectedConfig);
         if(windowInfo?.GetProcess() == null || windowInfo.GetProcess().HasExited) { MessageBox.Show($"App '{selectedConfig.ProcessName}' not running.", "Not Running", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
 
         string appIdentifier = $"{selectedConfig.ProcessName} (PID: {windowInfo.GetProcess().Id})";
         DialogResult dr = MessageBox.Show($"Close '{appIdentifier}'?\nForce kill if graceful close fails/times out?", "Confirm Close", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
         if(dr == DialogResult.Cancel) return;
 
-        bool success = _windowActionService.CloseApp(selectedConfig, dr == DialogResult.Yes, 2000);
+        bool success = windowActionService.CloseApp(selectedConfig, dr == DialogResult.Yes, 2000);
         MessageBox.Show(success ? $"Close attempt for '{appIdentifier}' initiated." : $"Failed to close '{appIdentifier}'.", success ? "Close Attempted" : "Close Failed", MessageBoxButtons.OK, success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
     }
 
     void buttonCloseAllProfileApps_Click(object sender, EventArgs e)
     {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        DialogResult dr = MessageBox.Show($"Close all apps in profile '{_selectedProfileForEditing.Name}'?\nForce kill if graceful close fails?", "Confirm Close All", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        DialogResult dr = MessageBox.Show($"Close all apps in profile '{selectedProfileForEditing.Name}'?\nForce kill if graceful close fails?", "Confirm Close All", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
         if(dr == DialogResult.Cancel) return;
-        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing, false, false, true, dr == DialogResult.Yes, 1500);
+        windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing, false, false, true, dr == DialogResult.Yes, 1500);
     }
 
     void buttonTestSelectedProfile_Click(object sender, EventArgs e)
     {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile to test.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Configs", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        _windowMonitorService.TestProfileLayout(_selectedProfileForEditing);
+        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile to test.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Configs", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        windowMonitorService.TestProfileLayout(selectedProfileForEditing);
     }
 
     void buttonAddProfile_Click(object sender, EventArgs e)
     {
-        var newProfile = ProfileUIManager.HandleAddProfile(_appSettings.Profiles);
+        var newProfile = ProfileUIManager.HandleAddProfile(appSettings.Profiles);
         if(newProfile != null)
         {
-            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
+            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, appSettings.ActiveProfileName);
             comboBoxActiveProfile.SelectedItem = newProfile;
         }
     }
 
     void buttonRemoveProfile_Click(object sender, EventArgs e)
     {
-        string newActiveProfileName = ProfileUIManager.HandleRemoveProfile(_appSettings.Profiles, _selectedProfileForEditing, _appSettings.ActiveProfileName);
+        string newActiveProfileName = ProfileUIManager.HandleRemoveProfile(appSettings.Profiles, selectedProfileForEditing, appSettings.ActiveProfileName);
         if(newActiveProfileName != null)
         {
-            _appSettings.ActiveProfileName = newActiveProfileName;
-            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
+            appSettings.ActiveProfileName = newActiveProfileName;
+            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, appSettings.ActiveProfileName);
         }
-        else if(_appSettings.Profiles.Contains(_selectedProfileForEditing))
+        else if(appSettings.Profiles.Contains(selectedProfileForEditing))
         {
         }
         else
         {
-            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
+            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, appSettings.ActiveProfileName);
         }
     }
 
     void buttonRenameProfile_Click(object sender, EventArgs e)
     {
-        string newActiveProfileName = ProfileUIManager.HandleRenameProfile(_appSettings.Profiles, _selectedProfileForEditing, _appSettings.ActiveProfileName);
+        string newActiveProfileName = ProfileUIManager.HandleRenameProfile(appSettings.Profiles, selectedProfileForEditing, appSettings.ActiveProfileName);
         if(newActiveProfileName != null)
         {
-            _appSettings.ActiveProfileName = newActiveProfileName;
+            appSettings.ActiveProfileName = newActiveProfileName;
         }
-        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
+        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, appSettings.ActiveProfileName);
     }
 
     void buttonCloneProfile_Click(object sender, EventArgs e)
     {
-        var clonedProfile = ProfileUIManager.HandleCloneProfile(_appSettings.Profiles, _selectedProfileForEditing);
+        var clonedProfile = ProfileUIManager.HandleCloneProfile(appSettings.Profiles, selectedProfileForEditing);
         if(clonedProfile != null)
         {
-            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
+            ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, appSettings.Profiles, appSettings.ActiveProfileName);
             comboBoxActiveProfile.SelectedItem = clonedProfile;
         }
     }
 
-    void comboBoxActiveProfile_SelectedIndexChanged(object sender, EventArgs e) { if(_isFormLoaded) HandleActiveProfileChange(); }
+    void comboBoxActiveProfile_SelectedIndexChanged(object sender, EventArgs e) { if(isFormLoaded) HandleActiveProfileChange(); }
 
     void buttonRemoveWindowConfig_Click(object sender, EventArgs e)
     {
         var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
-        if(_selectedProfileForEditing == null || selectedConfig == null) { MessageBox.Show("Select a window configuration to remove.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if(selectedProfileForEditing == null || selectedConfig == null) { MessageBox.Show("Select a window configuration to remove.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         if(dataGridViewWindowConfigs.DataSource is SortableBindingList<WindowConfig> bl) bl.Remove(selectedConfig);
         UpdateAllButtonStates();
     }
@@ -444,7 +450,7 @@ public partial class FormMain : Form
         var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
         if(selectedConfig == null) { MessageBox.Show("Select a window configuration.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         if(!selectedConfig.IsEnabled) { MessageBox.Show($"Config for '{selectedConfig.ProcessName}' is disabled.", "Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        if(!_windowActionService.ActivateOrLaunchApp(selectedConfig) && _windowActionService.FindManagedWindow(selectedConfig)?.HWnd != IntPtr.Zero)
+        if(!windowActionService.ActivateOrLaunchApp(selectedConfig) && windowActionService.FindManagedWindow(selectedConfig)?.HWnd != IntPtr.Zero)
             MessageBox.Show($"Failed to focus window for '{selectedConfig.ProcessName}'.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
     }
 
@@ -454,7 +460,15 @@ public partial class FormMain : Form
     protected override void WndProc(ref Message m) { if(TrayIconUIManager.HandleMinimizeToTray(ref m, () => TrayIconUIManager.HideFormAndShowTrayIcon(this, notifyIconMain))) return; base.WndProc(ref m); }
     void FormMain_Shown(object sender, EventArgs e) { if(this.WindowState == FormWindowState.Minimized && (this.ShowInTaskbar == false || this.Visible == false)) TrayIconUIManager.HideFormAndShowTrayIcon(this, notifyIconMain); else if(notifyIconMain != null && this.Visible) notifyIconMain.Visible = false; }
     void exitToolStripMenuItem_Click(object sender, EventArgs e) => ForceExitApplication();
-    void ForceExitApplication() { _windowMonitorService?.Dispose(); TrayIconUIManager.DisposeNotifyIcon(notifyIconMain); notifyIconMain = null; Environment.Exit(0); }
+
+    void ForceExitApplication()
+    {
+        windowMonitorService?.Dispose();
+        TrayIconUIManager.DisposeNotifyIcon(notifyIconMain);
+        WindowActionService.AppLaunchedForPositioning -= windowMonitorService.NotifyAppLaunched;
+        notifyIconMain = null; Environment.Exit(0);
+    }
+
     void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { }
 
     void buttonFocus_Click(object sender, EventArgs e)
@@ -472,12 +486,12 @@ public partial class FormMain : Form
             return;
         }
 
-        var windowInfo = _windowActionService.FindManagedWindow(selectedConfig);
+        var windowInfo = windowActionService.FindManagedWindow(selectedConfig);
 
         if(windowInfo != null && windowInfo.HWnd != IntPtr.Zero)
         {
             Debug.WriteLine($"App '{selectedConfig.ProcessName}' (hWnd:{windowInfo.HWnd}) found. Attempting to focus.");
-            bool success = _windowActionService.BringWindowToForeground(windowInfo.HWnd);
+            bool success = windowActionService.BringWindowToForeground(windowInfo.HWnd);
             if(!success)
             {
                 MessageBox.Show($"Failed to bring the window for '{selectedConfig.ProcessName}' to the foreground.\nThis can happen if another application is actively preventing focus changes or if the window is minimized in a way that prevents normal activation.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);

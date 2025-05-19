@@ -61,16 +61,16 @@ public static class ProcessPrivilegeChecker
         public uint TokenIsElevated;
     }
 
-    static bool? _isCurrentProcessElevatedCache = null;
+    static bool? isCurrentProcessElevatedCache = null;
     public static bool IsCurrentProcessElevated()
     {
-        if(_isCurrentProcessElevatedCache == null)
+        if(isCurrentProcessElevatedCache == null)
         {
             using WindowsIdentity identity = WindowsIdentity.GetCurrent();
             WindowsPrincipal principal = new WindowsPrincipal(identity);
-            _isCurrentProcessElevatedCache = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            isCurrentProcessElevatedCache = principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
-        return _isCurrentProcessElevatedCache.Value;
+        return isCurrentProcessElevatedCache.Value;
     }
 
     public static bool IsProcessElevated(int processId, out bool accessDeniedErrorOccurred)
