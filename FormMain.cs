@@ -141,6 +141,13 @@ public partial class FormMain : Form
         if(buttonFocusAllProfileApps != null) buttonFocusAllProfileApps.Enabled = profileSelectedAndHasConfigs;
     }
 
+    private IntPtr FindWindowForConfig(WindowConfig config)
+    {
+        if(config == null) return IntPtr.Zero;
+        var foundWindow = WindowEnumerationService.FindMostSuitableWindow(config);
+        return foundWindow?.HWnd ?? IntPtr.Zero;
+    }
+
 
     void UpdateProfileManagementButtonsState()
     {
@@ -454,7 +461,7 @@ public partial class FormMain : Form
                     if(selectedProcess.HasExited) throw new ArgumentException("Process has exited.");
 
 
-                    if(NativeMethods.GetWindowRect(selectedHWnd, out RECT currentRect))
+                    if(Native.GetWindowRect(selectedHWnd, out RECT currentRect))
                     {
                         if(currentRect.Width <= 0 || currentRect.Height <= 0)
                         {
@@ -573,42 +580,6 @@ public partial class FormMain : Form
         if(buttonActivateLaunchApp != null) buttonActivateLaunchApp.Enabled = rowSelected;
     }
 
-    IntPtr FindWindowForConfig(WindowConfig config)
-    {
-        if(string.IsNullOrWhiteSpace(config.ProcessName)) return IntPtr.Zero;
-        try
-        {
-            Process[] processes = Process.GetProcessesByName(config.ProcessName);
-            if(!processes.Any()) return IntPtr.Zero;
-
-            foreach(var proc in processes)
-            {
-                if(proc.MainWindowHandle == IntPtr.Zero) continue;
-
-                try { Process.GetProcessById(proc.Id); }
-                catch(ArgumentException) { continue; }
-
-                if(!string.IsNullOrWhiteSpace(config.WindowTitleHint))
-                {
-                    string currentTitle = NativeMethods.GetWindowTitle(proc.MainWindowHandle);
-                    if(currentTitle.ToLower().Contains(config.WindowTitleHint.ToLower()))
-                    {
-                        return proc.MainWindowHandle;
-                    }
-                }
-                else
-                {
-                    return proc.MainWindowHandle;
-                }
-            }
-        }
-        catch(Exception ex)
-        {
-            Debug.WriteLine($"Error finding window for config '{config.ProcessName}': {ex.Message}");
-        }
-        return IntPtr.Zero;
-    }
-
     void buttonFetchPosition_Click(object sender, EventArgs e)
     {
         if(dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
@@ -617,7 +588,7 @@ public partial class FormMain : Form
             IntPtr hWnd = FindWindowForConfig(selectedConfig);
             if(hWnd != IntPtr.Zero)
             {
-                if(NativeMethods.GetWindowRect(hWnd, out RECT currentRect))
+                if(Native.GetWindowRect(hWnd, out RECT currentRect))
                 {
                     selectedConfig.TargetX = currentRect.Left;
                     selectedConfig.TargetY = currentRect.Top;
@@ -638,7 +609,7 @@ public partial class FormMain : Form
             IntPtr hWnd = FindWindowForConfig(selectedConfig);
             if(hWnd != IntPtr.Zero)
             {
-                if(NativeMethods.GetWindowRect(hWnd, out RECT currentRect))
+                if(Native.GetWindowRect(hWnd, out RECT currentRect))
                 {
                     selectedConfig.TargetWidth = currentRect.Width;
                     selectedConfig.TargetHeight = currentRect.Height;
@@ -735,7 +706,6 @@ public partial class FormMain : Form
         checkBoxDisableProgram.ForeColor = isProgramDisabled ? Color.Red : SystemColors.ControlText;
     }
 
-
     private void buttonActivateLaunchApp_Click(object sender, EventArgs e)
     {
         if(dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
@@ -748,21 +718,26 @@ public partial class FormMain : Form
             }
 
             bool success = _windowActionService.ActivateOrLaunchApp(selectedConfig);
+
             if(!success)
             {
-                Process runningProcess = _windowActionService.GetRunningProcess(selectedConfig);
+                var windowInfo = _windowActionService.FindManagedWindow(selectedConfig);
                 string appIdentifier = string.IsNullOrWhiteSpace(selectedConfig.ExecutablePath) ? selectedConfig.ProcessName : selectedConfig.ExecutablePath;
                 appIdentifier = string.IsNullOrWhiteSpace(appIdentifier) ? "(Unnamed App)" : appIdentifier;
 
-                if(runningProcess == null)
+                if(windowInfo?.HWnd != IntPtr.Zero)
                 {
-                    MessageBox.Show($"Failed to launch '{appIdentifier}'.\nEnsure the Executable Path (if specified) or Process Name is correct and the application can be started.", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Failed to bring the window for '{appIdentifier}' to the foreground.\nThis can happen if another application is actively preventing focus changes.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
                 {
-                    MessageBox.Show($"Failed to bring '{appIdentifier}' to the foreground.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Debug.WriteLine($"ActivateOrLaunchApp failed for '{appIdentifier}'. LaunchApp should have shown a specific error.");
                 }
             }
+        }
+        else
+        {
+            MessageBox.Show("Please select a window configuration from the list.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 

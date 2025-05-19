@@ -48,332 +48,414 @@
 
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.notifyIconMain = new System.Windows.Forms.NotifyIcon(this.components);
-            this.contextMenuStripTray = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tabControlMain = new System.Windows.Forms.TabControl();
-            this.tabPageProfiles = new System.Windows.Forms.TabPage();
-            this.checkBoxDisableProgram = new System.Windows.Forms.CheckBox();
-            this.groupBoxWindowConfigs = new System.Windows.Forms.GroupBox();
-            this.buttonLaunchAllProfileApps = new System.Windows.Forms.Button();
-            this.buttonFocusAllProfileApps = new System.Windows.Forms.Button();
-            this.buttonTestSelectedProfile = new System.Windows.Forms.Button();
-            this.buttonAddWindowConfig = new System.Windows.Forms.Button();
-            this.buttonRemoveWindowConfig = new System.Windows.Forms.Button();
-            this.buttonActivateLaunchApp = new System.Windows.Forms.Button();
-            this.buttonFetchPosition = new System.Windows.Forms.Button();
-            this.buttonFetchSize = new System.Windows.Forms.Button();
-            this.dataGridViewWindowConfigs = new System.Windows.Forms.DataGridView();
-            this.groupBoxProfiles = new System.Windows.Forms.GroupBox();
-            this.labelActiveProfile = new System.Windows.Forms.Label();
-            this.comboBoxActiveProfile = new System.Windows.Forms.ComboBox();
-            this.buttonAddProfile = new System.Windows.Forms.Button();
-            this.buttonRenameProfile = new System.Windows.Forms.Button();
-            this.buttonCloneProfile = new System.Windows.Forms.Button();
-            this.buttonRemoveProfile = new System.Windows.Forms.Button();
-            this.tabPageSettings = new System.Windows.Forms.TabPage();
-            this.linkLabelGitHub = new System.Windows.Forms.LinkLabel();
-            this.labelCredits = new System.Windows.Forms.Label();
-            this.comboBoxStartupOptions = new System.Windows.Forms.ComboBox();
-            this.labelStartupOptions = new System.Windows.Forms.Label();
-            this.buttonSaveChanges = new System.Windows.Forms.Button();
-            this.toolTipGeneral = new System.Windows.Forms.ToolTip(this.components);
-            this.contextMenuStripTray.SuspendLayout();
-            this.tabControlMain.SuspendLayout();
-            this.tabPageProfiles.SuspendLayout();
-            this.groupBoxWindowConfigs.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWindowConfigs)).BeginInit();
-            this.groupBoxProfiles.SuspendLayout();
-            this.tabPageSettings.SuspendLayout();
-            this.SuspendLayout();
-            this.notifyIconMain.ContextMenuStrip = this.contextMenuStripTray;
-            this.notifyIconMain.Text = "Window Positioner";
-            this.notifyIconMain.Visible = true;
-            this.notifyIconMain.DoubleClick += new System.EventHandler(this.notifyIconMain_DoubleClick);
-            this.contextMenuStripTray.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.settingsToolStripMenuItem,
-            this.exitToolStripMenuItem});
-            this.contextMenuStripTray.Name = "contextMenuStripTray";
-            this.contextMenuStripTray.Size = new System.Drawing.Size(117, 48);
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.settingsToolStripMenuItem.Text = "&Settings";
-            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.exitToolStripMenuItem.Text = "&Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            this.tabControlMain.Controls.Add(this.tabPageProfiles);
-            this.tabControlMain.Controls.Add(this.tabPageSettings);
-            this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControlMain.Location = new System.Drawing.Point(0, 0);
-            this.tabControlMain.Name = "tabControlMain";
-            this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(784, 521);
-            this.tabControlMain.TabIndex = 0;
-            this.tabPageProfiles.Controls.Add(this.checkBoxDisableProgram);
-            this.tabPageProfiles.Controls.Add(this.groupBoxWindowConfigs);
-            this.tabPageProfiles.Controls.Add(this.groupBoxProfiles);
-            this.tabPageProfiles.Location = new System.Drawing.Point(4, 24);
-            this.tabPageProfiles.Name = "tabPageProfiles";
-            this.tabPageProfiles.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageProfiles.Size = new System.Drawing.Size(776, 493);
-            this.tabPageProfiles.TabIndex = 0;
-            this.tabPageProfiles.Text = "Profiles & Windows";
-            this.tabPageProfiles.UseVisualStyleBackColor = true;
-            this.checkBoxDisableProgram.AutoSize = true;
-            this.checkBoxDisableProgram.Location = new System.Drawing.Point(573, 7);
-            this.checkBoxDisableProgram.Name = "checkBoxDisableProgram";
-            this.checkBoxDisableProgram.Size = new System.Drawing.Size(195, 19);
-            this.checkBoxDisableProgram.TabIndex = 2;
-            this.toolTipGeneral.SetToolTip(this.checkBoxDisableProgram, "If this checkbox is enabled, the program will not adjust any windows.");
-            this.checkBoxDisableProgram.UseVisualStyleBackColor = true;
-            this.checkBoxDisableProgram.CheckedChanged += new System.EventHandler(this.checkBoxDisableProgram_CheckedChanged);
-            this.groupBoxWindowConfigs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonLaunchAllProfileApps);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonFocusAllProfileApps);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonTestSelectedProfile);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonAddWindowConfig);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonRemoveWindowConfig);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonActivateLaunchApp);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonFetchPosition);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonFetchSize);
-            this.groupBoxWindowConfigs.Controls.Add(this.dataGridViewWindowConfigs);
-            this.groupBoxWindowConfigs.Location = new System.Drawing.Point(200, 30);
-            this.groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
-            this.groupBoxWindowConfigs.Size = new System.Drawing.Size(570, 457);
-            this.groupBoxWindowConfigs.TabIndex = 1;
-            this.groupBoxWindowConfigs.TabStop = false;
-            this.groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
-            this.buttonLaunchAllProfileApps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonLaunchAllProfileApps.Enabled = false;
-            this.buttonLaunchAllProfileApps.Location = new System.Drawing.Point(250, 390);
-            this.buttonLaunchAllProfileApps.Name = "buttonLaunchAllProfileApps";
-            this.buttonLaunchAllProfileApps.Size = new System.Drawing.Size(100, 25);
-            this.buttonLaunchAllProfileApps.TabIndex = 1;
-            this.buttonLaunchAllProfileApps.Text = "Launch All";
-            this.toolTipGeneral.SetToolTip(this.buttonLaunchAllProfileApps, "Launch all configured apps in this profile that are not currently running.");
-            this.buttonLaunchAllProfileApps.UseVisualStyleBackColor = true;
-            this.buttonLaunchAllProfileApps.Click += new System.EventHandler(this.buttonLaunchAllProfileApps_Click);
-            this.buttonFocusAllProfileApps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonFocusAllProfileApps.Enabled = false;
-            this.buttonFocusAllProfileApps.Location = new System.Drawing.Point(357, 390);
-            this.buttonFocusAllProfileApps.Name = "buttonFocusAllProfileApps";
-            this.buttonFocusAllProfileApps.Size = new System.Drawing.Size(100, 25);
-            this.buttonFocusAllProfileApps.TabIndex = 2;
-            this.buttonFocusAllProfileApps.Text = "Focus All";
-            this.toolTipGeneral.SetToolTip(this.buttonFocusAllProfileApps, "Bring all running configured apps in this profile to the foreground.");
-            this.buttonFocusAllProfileApps.UseVisualStyleBackColor = true;
-            this.buttonFocusAllProfileApps.Click += new System.EventHandler(this.buttonFocusAllProfileApps_Click);
-            this.buttonTestSelectedProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonTestSelectedProfile.Enabled = false;
-            this.buttonTestSelectedProfile.Location = new System.Drawing.Point(464, 390);
-            this.buttonTestSelectedProfile.Name = "buttonTestSelectedProfile";
-            this.buttonTestSelectedProfile.Size = new System.Drawing.Size(100, 25);
-            this.buttonTestSelectedProfile.TabIndex = 3;
-            this.buttonTestSelectedProfile.Text = "Test Layout";
-            this.toolTipGeneral.SetToolTip(this.buttonTestSelectedProfile, "Apply window positions/sizes for the currently selected profile.");
-            this.buttonTestSelectedProfile.UseVisualStyleBackColor = true;
-            this.buttonTestSelectedProfile.Click += new System.EventHandler(this.buttonTestSelectedProfile_Click);
-            this.buttonAddWindowConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonAddWindowConfig.Location = new System.Drawing.Point(7, 422);
-            this.buttonAddWindowConfig.Name = "buttonAddWindowConfig";
-            this.buttonAddWindowConfig.Size = new System.Drawing.Size(115, 25);
-            this.buttonAddWindowConfig.TabIndex = 4;
-            this.buttonAddWindowConfig.Text = "Add Window";
-            this.toolTipGeneral.SetToolTip(this.buttonAddWindowConfig, "Add a new window configuration by selecting a running process");
-            this.buttonAddWindowConfig.UseVisualStyleBackColor = true;
-            this.buttonAddWindowConfig.Click += new System.EventHandler(this.buttonAddWindowConfig_Click);
-            this.buttonRemoveWindowConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRemoveWindowConfig.Enabled = false;
-            this.buttonRemoveWindowConfig.Location = new System.Drawing.Point(129, 422);
-            this.buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
-            this.buttonRemoveWindowConfig.Size = new System.Drawing.Size(115, 25);
-            this.buttonRemoveWindowConfig.TabIndex = 5;
-            this.buttonRemoveWindowConfig.Text = "Remove Window";
-            this.buttonRemoveWindowConfig.UseVisualStyleBackColor = true;
-            this.buttonRemoveWindowConfig.Click += new System.EventHandler(this.buttonRemoveWindowConfig_Click);
-            this.buttonActivateLaunchApp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonActivateLaunchApp.Enabled = false;
-            this.buttonActivateLaunchApp.Location = new System.Drawing.Point(251, 422);
-            this.buttonActivateLaunchApp.Name = "buttonActivateLaunchApp";
-            this.buttonActivateLaunchApp.Size = new System.Drawing.Size(100, 25);
-            this.buttonActivateLaunchApp.TabIndex = 6;
-            this.buttonActivateLaunchApp.Text = "Activate Sel.";
-            this.toolTipGeneral.SetToolTip(this.buttonActivateLaunchApp, "Launch the selected app if not running, or bring its window to the foreground.");
-            this.buttonActivateLaunchApp.UseVisualStyleBackColor = true;
-            this.buttonActivateLaunchApp.Click += new System.EventHandler(this.buttonActivateLaunchApp_Click);
-            this.buttonFetchPosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonFetchPosition.Enabled = false;
-            this.buttonFetchPosition.Location = new System.Drawing.Point(357, 422);
-            this.buttonFetchPosition.Name = "buttonFetchPosition";
-            this.buttonFetchPosition.Size = new System.Drawing.Size(100, 25);
-            this.buttonFetchPosition.TabIndex = 7;
-            this.buttonFetchPosition.Text = "Fetch Position";
-            this.toolTipGeneral.SetToolTip(this.buttonFetchPosition, "Update X,Y from the live window matching this configuration");
-            this.buttonFetchPosition.UseVisualStyleBackColor = true;
-            this.buttonFetchPosition.Click += new System.EventHandler(this.buttonFetchPosition_Click);
-            this.buttonFetchSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonFetchSize.Enabled = false;
-            this.buttonFetchSize.Location = new System.Drawing.Point(464, 422);
-            this.buttonFetchSize.Name = "buttonFetchSize";
-            this.buttonFetchSize.Size = new System.Drawing.Size(100, 25);
-            this.buttonFetchSize.TabIndex = 8;
-            this.buttonFetchSize.Text = "Fetch Size";
-            this.toolTipGeneral.SetToolTip(this.buttonFetchSize, "Update Width,Height from the live window matching this configuration");
-            this.buttonFetchSize.UseVisualStyleBackColor = true;
-            this.buttonFetchSize.Click += new System.EventHandler(this.buttonFetchSize_Click);
-            this.dataGridViewWindowConfigs.AllowUserToAddRows = false;
-            this.dataGridViewWindowConfigs.AllowUserToDeleteRows = false;
-            this.dataGridViewWindowConfigs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridViewWindowConfigs.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dataGridViewWindowConfigs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewWindowConfigs.Location = new System.Drawing.Point(7, 23);
-            this.dataGridViewWindowConfigs.MultiSelect = false;
-            this.dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
-            this.dataGridViewWindowConfigs.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridViewWindowConfigs.Size = new System.Drawing.Size(557, 360);
-            this.dataGridViewWindowConfigs.TabIndex = 0;
-            this.dataGridViewWindowConfigs.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewWindowConfigs_CellEndEdit);
-            this.dataGridViewWindowConfigs.SelectionChanged += new System.EventHandler(this.dataGridViewWindowConfigs_SelectionChanged);
-            this.groupBoxProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.groupBoxProfiles.Controls.Add(this.labelActiveProfile);
-            this.groupBoxProfiles.Controls.Add(this.comboBoxActiveProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonAddProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonRenameProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonCloneProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonRemoveProfile);
-            this.groupBoxProfiles.Location = new System.Drawing.Point(7, 7);
-            this.groupBoxProfiles.Name = "groupBoxProfiles";
-            this.groupBoxProfiles.Size = new System.Drawing.Size(187, 480);
-            this.groupBoxProfiles.TabIndex = 0;
-            this.groupBoxProfiles.TabStop = false;
-            this.groupBoxProfiles.Text = "Profile Editor";
-            this.labelActiveProfile.AutoSize = true;
-            this.labelActiveProfile.Location = new System.Drawing.Point(7, 20);
-            this.labelActiveProfile.Name = "labelActiveProfile";
-            this.labelActiveProfile.Size = new System.Drawing.Size(80, 15);
-            this.labelActiveProfile.TabIndex = 0;
-            this.labelActiveProfile.Text = "Active Profile:";
-            this.comboBoxActiveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboBoxActiveProfile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxActiveProfile.FormattingEnabled = true;
-            this.comboBoxActiveProfile.Location = new System.Drawing.Point(7, 38);
-            this.comboBoxActiveProfile.Name = "comboBoxActiveProfile";
-            this.comboBoxActiveProfile.Size = new System.Drawing.Size(174, 23);
-            this.comboBoxActiveProfile.TabIndex = 1;
-            this.comboBoxActiveProfile.SelectedIndexChanged += new System.EventHandler(this.comboBoxActiveProfile_SelectedIndexChanged);
-            this.buttonAddProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAddProfile.Location = new System.Drawing.Point(7, 70);
-            this.buttonAddProfile.Name = "buttonAddProfile";
-            this.buttonAddProfile.Size = new System.Drawing.Size(174, 25);
-            this.buttonAddProfile.TabIndex = 2;
-            this.buttonAddProfile.Text = "Add New Profile";
-            this.buttonAddProfile.UseVisualStyleBackColor = true;
-            this.buttonAddProfile.Click += new System.EventHandler(this.buttonAddProfile_Click);
-            this.buttonRenameProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRenameProfile.Location = new System.Drawing.Point(7, 101);
-            this.buttonRenameProfile.Name = "buttonRenameProfile";
-            this.buttonRenameProfile.Size = new System.Drawing.Size(174, 25);
-            this.buttonRenameProfile.TabIndex = 3;
-            this.buttonRenameProfile.Text = "Rename Selected";
-            this.buttonRenameProfile.UseVisualStyleBackColor = true;
-            this.buttonRenameProfile.Click += new System.EventHandler(this.buttonRenameProfile_Click);
-            this.buttonCloneProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCloneProfile.Location = new System.Drawing.Point(7, 132);
-            this.buttonCloneProfile.Name = "buttonCloneProfile";
-            this.buttonCloneProfile.Size = new System.Drawing.Size(174, 25);
-            this.buttonCloneProfile.TabIndex = 4;
-            this.buttonCloneProfile.Text = "Clone Selected";
-            this.buttonCloneProfile.UseVisualStyleBackColor = true;
-            this.buttonCloneProfile.Click += new System.EventHandler(this.buttonCloneProfile_Click);
-            this.buttonRemoveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemoveProfile.Location = new System.Drawing.Point(7, 163);
-            this.buttonRemoveProfile.Name = "buttonRemoveProfile";
-            this.buttonRemoveProfile.Size = new System.Drawing.Size(174, 25);
-            this.buttonRemoveProfile.TabIndex = 5;
-            this.buttonRemoveProfile.Text = "Remove Selected";
-            this.buttonRemoveProfile.UseVisualStyleBackColor = true;
-            this.buttonRemoveProfile.Click += new System.EventHandler(this.buttonRemoveProfile_Click);
-            this.tabPageSettings.Controls.Add(this.linkLabelGitHub);
-            this.tabPageSettings.Controls.Add(this.labelCredits);
-            this.tabPageSettings.Controls.Add(this.comboBoxStartupOptions);
-            this.tabPageSettings.Controls.Add(this.labelStartupOptions);
-            this.tabPageSettings.Location = new System.Drawing.Point(4, 24);
-            this.tabPageSettings.Name = "tabPageSettings";
-            this.tabPageSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSettings.Size = new System.Drawing.Size(776, 493);
-            this.tabPageSettings.TabIndex = 1;
-            this.tabPageSettings.Text = "Application Settings";
-            this.tabPageSettings.UseVisualStyleBackColor = true;
-            this.linkLabelGitHub.AutoSize = true;
-            this.linkLabelGitHub.Location = new System.Drawing.Point(15, 80);
-            this.linkLabelGitHub.Name = "linkLabelGitHub";
-            this.linkLabelGitHub.Size = new System.Drawing.Size(119, 15);
-            this.linkLabelGitHub.TabIndex = 3;
-            this.linkLabelGitHub.TabStop = true;
-            this.linkLabelGitHub.Text = "Visit my GitHub page";
-            this.linkLabelGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelGitHub_LinkClicked);
-            this.labelCredits.AutoSize = true;
-            this.labelCredits.Location = new System.Drawing.Point(15, 60);
-            this.labelCredits.Name = "labelCredits";
-            this.labelCredits.Size = new System.Drawing.Size(174, 15);
-            this.labelCredits.TabIndex = 2;
-            this.labelCredits.Text = "Found an issue or have an idea?";
-            this.comboBoxStartupOptions.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxStartupOptions.FormattingEnabled = true;
-            this.comboBoxStartupOptions.Location = new System.Drawing.Point(220, 17);
-            this.comboBoxStartupOptions.Name = "comboBoxStartupOptions";
-            this.comboBoxStartupOptions.Size = new System.Drawing.Size(250, 23);
-            this.comboBoxStartupOptions.TabIndex = 1;
-            this.labelStartupOptions.AutoSize = true;
-            this.labelStartupOptions.Location = new System.Drawing.Point(15, 20);
-            this.labelStartupOptions.Name = "labelStartupOptions";
-            this.labelStartupOptions.Size = new System.Drawing.Size(93, 15);
-            this.labelStartupOptions.TabIndex = 0;
-            this.labelStartupOptions.Text = "Startup Options:";
-            this.buttonSaveChanges.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.buttonSaveChanges.Location = new System.Drawing.Point(0, 521);
-            this.buttonSaveChanges.Name = "buttonSaveChanges";
-            this.buttonSaveChanges.Size = new System.Drawing.Size(784, 40);
-            this.buttonSaveChanges.TabIndex = 1;
-            this.buttonSaveChanges.Text = "Save All Changes";
-            this.buttonSaveChanges.UseVisualStyleBackColor = true;
-            this.buttonSaveChanges.Click += new System.EventHandler(this.buttonSaveChanges_Click);
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 561);
-            this.Controls.Add(this.tabControlMain);
-            this.Controls.Add(this.buttonSaveChanges);
-            this.MinimumSize = new System.Drawing.Size(600, 400);
-            this.Name = "FormMain";
-            this.Text = "Window Placement Manager";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
-            this.Load += new System.EventHandler(this.FormMain_Load);
-            this.Shown += new System.EventHandler(this.FormMain_Shown);
-            this.contextMenuStripTray.ResumeLayout(false);
-            this.tabControlMain.ResumeLayout(false);
-            this.tabPageProfiles.ResumeLayout(false);
-            this.tabPageProfiles.PerformLayout();
-            this.groupBoxWindowConfigs.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWindowConfigs)).EndInit();
-            this.groupBoxProfiles.ResumeLayout(false);
-            this.groupBoxProfiles.PerformLayout();
-            this.tabPageSettings.ResumeLayout(false);
-            this.tabPageSettings.PerformLayout();
-            this.ResumeLayout(false);
+            components = new System.ComponentModel.Container();
+            notifyIconMain = new NotifyIcon(components);
+            contextMenuStripTray = new ContextMenuStrip(components);
+            settingsToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
+            tabControlMain = new TabControl();
+            tabPageProfiles = new TabPage();
+            checkBoxDisableProgram = new CheckBox();
+            groupBoxWindowConfigs = new GroupBox();
+            buttonLaunchAllProfileApps = new Button();
+            buttonFocusAllProfileApps = new Button();
+            buttonTestSelectedProfile = new Button();
+            buttonAddWindowConfig = new Button();
+            buttonRemoveWindowConfig = new Button();
+            buttonActivateLaunchApp = new Button();
+            buttonFetchPosition = new Button();
+            buttonFetchSize = new Button();
+            dataGridViewWindowConfigs = new DataGridView();
+            groupBoxProfiles = new GroupBox();
+            labelActiveProfile = new Label();
+            comboBoxActiveProfile = new ComboBox();
+            buttonAddProfile = new Button();
+            buttonRenameProfile = new Button();
+            buttonCloneProfile = new Button();
+            buttonRemoveProfile = new Button();
+            tabPageSettings = new TabPage();
+            linkLabelGitHub = new LinkLabel();
+            labelCredits = new Label();
+            comboBoxStartupOptions = new ComboBox();
+            labelStartupOptions = new Label();
+            buttonSaveChanges = new Button();
+            toolTipGeneral = new ToolTip(components);
+            contextMenuStripTray.SuspendLayout();
+            tabControlMain.SuspendLayout();
+            tabPageProfiles.SuspendLayout();
+            groupBoxWindowConfigs.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).BeginInit();
+            groupBoxProfiles.SuspendLayout();
+            tabPageSettings.SuspendLayout();
+            SuspendLayout();
+            // 
+            // notifyIconMain
+            // 
+            notifyIconMain.ContextMenuStrip = contextMenuStripTray;
+            notifyIconMain.Text = "Window Positioner";
+            notifyIconMain.Visible = true;
+            notifyIconMain.DoubleClick += notifyIconMain_DoubleClick;
+            // 
+            // contextMenuStripTray
+            // 
+            contextMenuStripTray.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
+            contextMenuStripTray.Name = "contextMenuStripTray";
+            contextMenuStripTray.Size = new Size(117, 48);
+            // 
+            // settingsToolStripMenuItem
+            // 
+            settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            settingsToolStripMenuItem.Size = new Size(116, 22);
+            settingsToolStripMenuItem.Text = "&Settings";
+            settingsToolStripMenuItem.Click += settingsToolStripMenuItem_Click;
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(116, 22);
+            exitToolStripMenuItem.Text = "&Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
+            // 
+            // tabControlMain
+            // 
+            tabControlMain.Controls.Add(tabPageProfiles);
+            tabControlMain.Controls.Add(tabPageSettings);
+            tabControlMain.Dock = DockStyle.Fill;
+            tabControlMain.Location = new Point(0, 0);
+            tabControlMain.Name = "tabControlMain";
+            tabControlMain.SelectedIndex = 0;
+            tabControlMain.Size = new Size(784, 521);
+            tabControlMain.TabIndex = 0;
+            // 
+            // tabPageProfiles
+            // 
+            tabPageProfiles.Controls.Add(checkBoxDisableProgram);
+            tabPageProfiles.Controls.Add(groupBoxWindowConfigs);
+            tabPageProfiles.Controls.Add(groupBoxProfiles);
+            tabPageProfiles.Location = new Point(4, 24);
+            tabPageProfiles.Name = "tabPageProfiles";
+            tabPageProfiles.Padding = new Padding(3);
+            tabPageProfiles.Size = new Size(776, 493);
+            tabPageProfiles.TabIndex = 0;
+            tabPageProfiles.Text = "Profiles & Windows";
+            tabPageProfiles.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxDisableProgram
+            // 
+            checkBoxDisableProgram.AutoSize = true;
+            checkBoxDisableProgram.Location = new Point(608, 7);
+            checkBoxDisableProgram.Name = "checkBoxDisableProgram";
+            checkBoxDisableProgram.Size = new Size(156, 19);
+            checkBoxDisableProgram.TabIndex = 2;
+            checkBoxDisableProgram.Text = "Disable Program Activity";
+            toolTipGeneral.SetToolTip(checkBoxDisableProgram, "If this checkbox is enabled, the program will not adjust any windows.");
+            checkBoxDisableProgram.UseVisualStyleBackColor = true;
+            checkBoxDisableProgram.CheckedChanged += checkBoxDisableProgram_CheckedChanged;
+            // 
+            // groupBoxWindowConfigs
+            // 
+            groupBoxWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            groupBoxWindowConfigs.Controls.Add(buttonLaunchAllProfileApps);
+            groupBoxWindowConfigs.Controls.Add(buttonFocusAllProfileApps);
+            groupBoxWindowConfigs.Controls.Add(buttonTestSelectedProfile);
+            groupBoxWindowConfigs.Controls.Add(buttonAddWindowConfig);
+            groupBoxWindowConfigs.Controls.Add(buttonRemoveWindowConfig);
+            groupBoxWindowConfigs.Controls.Add(buttonActivateLaunchApp);
+            groupBoxWindowConfigs.Controls.Add(buttonFetchPosition);
+            groupBoxWindowConfigs.Controls.Add(buttonFetchSize);
+            groupBoxWindowConfigs.Controls.Add(dataGridViewWindowConfigs);
+            groupBoxWindowConfigs.Location = new Point(200, 30);
+            groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
+            groupBoxWindowConfigs.Size = new Size(570, 457);
+            groupBoxWindowConfigs.TabIndex = 1;
+            groupBoxWindowConfigs.TabStop = false;
+            groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
+            // 
+            // buttonLaunchAllProfileApps
+            // 
+            buttonLaunchAllProfileApps.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonLaunchAllProfileApps.Enabled = false;
+            buttonLaunchAllProfileApps.Location = new Point(250, 390);
+            buttonLaunchAllProfileApps.Name = "buttonLaunchAllProfileApps";
+            buttonLaunchAllProfileApps.Size = new Size(100, 25);
+            buttonLaunchAllProfileApps.TabIndex = 1;
+            buttonLaunchAllProfileApps.Text = "Launch All";
+            toolTipGeneral.SetToolTip(buttonLaunchAllProfileApps, "Launch all configured apps in this profile that are not currently running.");
+            buttonLaunchAllProfileApps.UseVisualStyleBackColor = true;
+            buttonLaunchAllProfileApps.Click += buttonLaunchAllProfileApps_Click;
+            // 
+            // buttonFocusAllProfileApps
+            // 
+            buttonFocusAllProfileApps.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonFocusAllProfileApps.Enabled = false;
+            buttonFocusAllProfileApps.Location = new Point(357, 390);
+            buttonFocusAllProfileApps.Name = "buttonFocusAllProfileApps";
+            buttonFocusAllProfileApps.Size = new Size(100, 25);
+            buttonFocusAllProfileApps.TabIndex = 2;
+            buttonFocusAllProfileApps.Text = "Focus All";
+            toolTipGeneral.SetToolTip(buttonFocusAllProfileApps, "Bring all running configured apps in this profile to the foreground.");
+            buttonFocusAllProfileApps.UseVisualStyleBackColor = true;
+            buttonFocusAllProfileApps.Click += buttonFocusAllProfileApps_Click;
+            // 
+            // buttonTestSelectedProfile
+            // 
+            buttonTestSelectedProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonTestSelectedProfile.Enabled = false;
+            buttonTestSelectedProfile.Location = new Point(464, 390);
+            buttonTestSelectedProfile.Name = "buttonTestSelectedProfile";
+            buttonTestSelectedProfile.Size = new Size(100, 25);
+            buttonTestSelectedProfile.TabIndex = 3;
+            buttonTestSelectedProfile.Text = "Test Layout";
+            toolTipGeneral.SetToolTip(buttonTestSelectedProfile, "Apply window positions/sizes for the currently selected profile.");
+            buttonTestSelectedProfile.UseVisualStyleBackColor = true;
+            buttonTestSelectedProfile.Click += buttonTestSelectedProfile_Click;
+            // 
+            // buttonAddWindowConfig
+            // 
+            buttonAddWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonAddWindowConfig.Location = new Point(7, 422);
+            buttonAddWindowConfig.Name = "buttonAddWindowConfig";
+            buttonAddWindowConfig.Size = new Size(115, 25);
+            buttonAddWindowConfig.TabIndex = 4;
+            buttonAddWindowConfig.Text = "Add Window";
+            toolTipGeneral.SetToolTip(buttonAddWindowConfig, "Add a new window configuration by selecting a running process");
+            buttonAddWindowConfig.UseVisualStyleBackColor = true;
+            buttonAddWindowConfig.Click += buttonAddWindowConfig_Click;
+            // 
+            // buttonRemoveWindowConfig
+            // 
+            buttonRemoveWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonRemoveWindowConfig.Enabled = false;
+            buttonRemoveWindowConfig.Location = new Point(129, 422);
+            buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
+            buttonRemoveWindowConfig.Size = new Size(115, 25);
+            buttonRemoveWindowConfig.TabIndex = 5;
+            buttonRemoveWindowConfig.Text = "Remove Window";
+            buttonRemoveWindowConfig.UseVisualStyleBackColor = true;
+            buttonRemoveWindowConfig.Click += buttonRemoveWindowConfig_Click;
+            // 
+            // buttonActivateLaunchApp
+            // 
+            buttonActivateLaunchApp.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonActivateLaunchApp.Enabled = false;
+            buttonActivateLaunchApp.Location = new Point(251, 422);
+            buttonActivateLaunchApp.Name = "buttonActivateLaunchApp";
+            buttonActivateLaunchApp.Size = new Size(100, 25);
+            buttonActivateLaunchApp.TabIndex = 6;
+            buttonActivateLaunchApp.Text = "Activate Sel.";
+            toolTipGeneral.SetToolTip(buttonActivateLaunchApp, "Launch the selected app if not running, or bring its window to the foreground.");
+            buttonActivateLaunchApp.UseVisualStyleBackColor = true;
+            buttonActivateLaunchApp.Click += buttonActivateLaunchApp_Click;
+            // 
+            // buttonFetchPosition
+            // 
+            buttonFetchPosition.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonFetchPosition.Enabled = false;
+            buttonFetchPosition.Location = new Point(357, 422);
+            buttonFetchPosition.Name = "buttonFetchPosition";
+            buttonFetchPosition.Size = new Size(100, 25);
+            buttonFetchPosition.TabIndex = 7;
+            buttonFetchPosition.Text = "Fetch Position";
+            toolTipGeneral.SetToolTip(buttonFetchPosition, "Update X,Y from the live window matching this configuration");
+            buttonFetchPosition.UseVisualStyleBackColor = true;
+            buttonFetchPosition.Click += buttonFetchPosition_Click;
+            // 
+            // buttonFetchSize
+            // 
+            buttonFetchSize.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonFetchSize.Enabled = false;
+            buttonFetchSize.Location = new Point(464, 422);
+            buttonFetchSize.Name = "buttonFetchSize";
+            buttonFetchSize.Size = new Size(100, 25);
+            buttonFetchSize.TabIndex = 8;
+            buttonFetchSize.Text = "Fetch Size";
+            toolTipGeneral.SetToolTip(buttonFetchSize, "Update Width,Height from the live window matching this configuration");
+            buttonFetchSize.UseVisualStyleBackColor = true;
+            buttonFetchSize.Click += buttonFetchSize_Click;
+            // 
+            // dataGridViewWindowConfigs
+            // 
+            dataGridViewWindowConfigs.AllowUserToAddRows = false;
+            dataGridViewWindowConfigs.AllowUserToDeleteRows = false;
+            dataGridViewWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridViewWindowConfigs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridViewWindowConfigs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewWindowConfigs.Location = new Point(7, 23);
+            dataGridViewWindowConfigs.MultiSelect = false;
+            dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
+            dataGridViewWindowConfigs.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridViewWindowConfigs.Size = new Size(557, 360);
+            dataGridViewWindowConfigs.TabIndex = 0;
+            dataGridViewWindowConfigs.CellEndEdit += dataGridViewWindowConfigs_CellEndEdit;
+            dataGridViewWindowConfigs.SelectionChanged += dataGridViewWindowConfigs_SelectionChanged;
+            // 
+            // groupBoxProfiles
+            // 
+            groupBoxProfiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            groupBoxProfiles.Controls.Add(labelActiveProfile);
+            groupBoxProfiles.Controls.Add(comboBoxActiveProfile);
+            groupBoxProfiles.Controls.Add(buttonAddProfile);
+            groupBoxProfiles.Controls.Add(buttonRenameProfile);
+            groupBoxProfiles.Controls.Add(buttonCloneProfile);
+            groupBoxProfiles.Controls.Add(buttonRemoveProfile);
+            groupBoxProfiles.Location = new Point(7, 7);
+            groupBoxProfiles.Name = "groupBoxProfiles";
+            groupBoxProfiles.Size = new Size(187, 480);
+            groupBoxProfiles.TabIndex = 0;
+            groupBoxProfiles.TabStop = false;
+            groupBoxProfiles.Text = "Profile Editor";
+            // 
+            // labelActiveProfile
+            // 
+            labelActiveProfile.AutoSize = true;
+            labelActiveProfile.Location = new Point(7, 20);
+            labelActiveProfile.Name = "labelActiveProfile";
+            labelActiveProfile.Size = new Size(80, 15);
+            labelActiveProfile.TabIndex = 0;
+            labelActiveProfile.Text = "Active Profile:";
+            // 
+            // comboBoxActiveProfile
+            // 
+            comboBoxActiveProfile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            comboBoxActiveProfile.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxActiveProfile.FormattingEnabled = true;
+            comboBoxActiveProfile.Location = new Point(7, 38);
+            comboBoxActiveProfile.Name = "comboBoxActiveProfile";
+            comboBoxActiveProfile.Size = new Size(174, 23);
+            comboBoxActiveProfile.TabIndex = 1;
+            comboBoxActiveProfile.SelectedIndexChanged += comboBoxActiveProfile_SelectedIndexChanged;
+            // 
+            // buttonAddProfile
+            // 
+            buttonAddProfile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonAddProfile.Location = new Point(7, 70);
+            buttonAddProfile.Name = "buttonAddProfile";
+            buttonAddProfile.Size = new Size(174, 25);
+            buttonAddProfile.TabIndex = 2;
+            buttonAddProfile.Text = "Add New Profile";
+            buttonAddProfile.UseVisualStyleBackColor = true;
+            buttonAddProfile.Click += buttonAddProfile_Click;
+            // 
+            // buttonRenameProfile
+            // 
+            buttonRenameProfile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonRenameProfile.Location = new Point(7, 101);
+            buttonRenameProfile.Name = "buttonRenameProfile";
+            buttonRenameProfile.Size = new Size(174, 25);
+            buttonRenameProfile.TabIndex = 3;
+            buttonRenameProfile.Text = "Rename Selected";
+            buttonRenameProfile.UseVisualStyleBackColor = true;
+            buttonRenameProfile.Click += buttonRenameProfile_Click;
+            // 
+            // buttonCloneProfile
+            // 
+            buttonCloneProfile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonCloneProfile.Location = new Point(7, 132);
+            buttonCloneProfile.Name = "buttonCloneProfile";
+            buttonCloneProfile.Size = new Size(174, 25);
+            buttonCloneProfile.TabIndex = 4;
+            buttonCloneProfile.Text = "Clone Selected";
+            buttonCloneProfile.UseVisualStyleBackColor = true;
+            buttonCloneProfile.Click += buttonCloneProfile_Click;
+            // 
+            // buttonRemoveProfile
+            // 
+            buttonRemoveProfile.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonRemoveProfile.Location = new Point(7, 163);
+            buttonRemoveProfile.Name = "buttonRemoveProfile";
+            buttonRemoveProfile.Size = new Size(174, 25);
+            buttonRemoveProfile.TabIndex = 5;
+            buttonRemoveProfile.Text = "Remove Selected";
+            buttonRemoveProfile.UseVisualStyleBackColor = true;
+            buttonRemoveProfile.Click += buttonRemoveProfile_Click;
+            // 
+            // tabPageSettings
+            // 
+            tabPageSettings.Controls.Add(linkLabelGitHub);
+            tabPageSettings.Controls.Add(labelCredits);
+            tabPageSettings.Controls.Add(comboBoxStartupOptions);
+            tabPageSettings.Controls.Add(labelStartupOptions);
+            tabPageSettings.Location = new Point(4, 24);
+            tabPageSettings.Name = "tabPageSettings";
+            tabPageSettings.Padding = new Padding(3);
+            tabPageSettings.Size = new Size(776, 493);
+            tabPageSettings.TabIndex = 1;
+            tabPageSettings.Text = "Application Settings";
+            tabPageSettings.UseVisualStyleBackColor = true;
+            // 
+            // linkLabelGitHub
+            // 
+            linkLabelGitHub.AutoSize = true;
+            linkLabelGitHub.Location = new Point(15, 80);
+            linkLabelGitHub.Name = "linkLabelGitHub";
+            linkLabelGitHub.Size = new Size(119, 15);
+            linkLabelGitHub.TabIndex = 3;
+            linkLabelGitHub.TabStop = true;
+            linkLabelGitHub.Text = "Visit my GitHub page";
+            linkLabelGitHub.LinkClicked += linkLabelGitHub_LinkClicked;
+            // 
+            // labelCredits
+            // 
+            labelCredits.AutoSize = true;
+            labelCredits.Location = new Point(15, 60);
+            labelCredits.Name = "labelCredits";
+            labelCredits.Size = new Size(174, 15);
+            labelCredits.TabIndex = 2;
+            labelCredits.Text = "Found an issue or have an idea?";
+            // 
+            // comboBoxStartupOptions
+            // 
+            comboBoxStartupOptions.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxStartupOptions.FormattingEnabled = true;
+            comboBoxStartupOptions.Location = new Point(220, 17);
+            comboBoxStartupOptions.Name = "comboBoxStartupOptions";
+            comboBoxStartupOptions.Size = new Size(250, 23);
+            comboBoxStartupOptions.TabIndex = 1;
+            // 
+            // labelStartupOptions
+            // 
+            labelStartupOptions.AutoSize = true;
+            labelStartupOptions.Location = new Point(15, 20);
+            labelStartupOptions.Name = "labelStartupOptions";
+            labelStartupOptions.Size = new Size(93, 15);
+            labelStartupOptions.TabIndex = 0;
+            labelStartupOptions.Text = "Startup Options:";
+            // 
+            // buttonSaveChanges
+            // 
+            buttonSaveChanges.Dock = DockStyle.Bottom;
+            buttonSaveChanges.Location = new Point(0, 521);
+            buttonSaveChanges.Name = "buttonSaveChanges";
+            buttonSaveChanges.Size = new Size(784, 40);
+            buttonSaveChanges.TabIndex = 1;
+            buttonSaveChanges.Text = "Save All Changes";
+            buttonSaveChanges.UseVisualStyleBackColor = true;
+            buttonSaveChanges.Click += buttonSaveChanges_Click;
+            // 
+            // FormMain
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(784, 561);
+            Controls.Add(tabControlMain);
+            Controls.Add(buttonSaveChanges);
+            MinimumSize = new Size(600, 400);
+            Name = "FormMain";
+            Text = "Window Placement Manager";
+            FormClosing += FormMain_FormClosing;
+            Load += FormMain_Load;
+            Shown += FormMain_Shown;
+            contextMenuStripTray.ResumeLayout(false);
+            tabControlMain.ResumeLayout(false);
+            tabPageProfiles.ResumeLayout(false);
+            tabPageProfiles.PerformLayout();
+            groupBoxWindowConfigs.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).EndInit();
+            groupBoxProfiles.ResumeLayout(false);
+            groupBoxProfiles.PerformLayout();
+            tabPageSettings.ResumeLayout(false);
+            tabPageSettings.PerformLayout();
+            ResumeLayout(false);
         }
     }
 }
