@@ -22,10 +22,11 @@ public partial class FormMain : Form
         InitializeComponent();
         _settingsManager = new SettingsManager();
         _startupManager = new StartupManager();
-        _windowMonitorService = new WindowMonitorService(_settingsManager);
         _windowActionService = new WindowActionService();
+        _windowMonitorService = new WindowMonitorService(_settingsManager, _windowActionService);
         TrayIconUIManager.InitializeNotifyIcon(this.notifyIconMain);
     }
+
 
     void UpdateAllButtonStates()
     {

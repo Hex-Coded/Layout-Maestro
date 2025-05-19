@@ -8,17 +8,18 @@ public static class WindowConfigGridUIManager
     {
         dgv.AutoGenerateColumns = false;
         dgv.Columns.Clear();
-        dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.IsEnabled), HeaderText = "Manage", Width = 60, Frozen = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
+        dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.IsEnabled), HeaderText = "On", Width = 35, Frozen = true, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
         dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ProcessName), HeaderText = "Process Name", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 20, MinimumWidth = 100 });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ExecutablePath), HeaderText = "Executable Path", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 30, MinimumWidth = 150, ToolTipText = "Full path to the executable (optional, helps with launching)" });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.WindowTitleHint), HeaderText = "Window Title", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 25, MinimumWidth = 120 });
-        dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.LaunchAsAdmin), HeaderText = "Run Adm?", ToolTipText = "Launch this application with Administrator privileges", Width = 65, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ExecutablePath), HeaderText = "Executable Path", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 25, MinimumWidth = 150, ToolTipText = "Full path to the executable (optional, helps with launching)" });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.WindowTitleHint), HeaderText = "Window Title", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight = 20, MinimumWidth = 120 });
+        dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.LaunchAsAdmin), HeaderText = "Adm?", ToolTipText = "Launch this application with Administrator privileges", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
+        dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.AutoRelaunchEnabled), HeaderText = "AutoRL", ToolTipText = "Automatically Relaunch if Closed", Width = 50, AutoSizeMode = DataGridViewAutoSizeColumnMode.None }); // New Column
         dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.ControlPosition), HeaderText = "Pos?", ToolTipText = "Control Position", Width = 40, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetX), HeaderText = "X", Width = 50, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetY), HeaderText = "Y", Width = 50, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetX), HeaderText = "X", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetY), HeaderText = "Y", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
         dgv.Columns.Add(new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.ControlSize), HeaderText = "Size?", ToolTipText = "Control Size", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetWidth), HeaderText = "W", Width = 50, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
-        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetHeight), HeaderText = "H", Width = 50, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetWidth), HeaderText = "W", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
+        dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetHeight), HeaderText = "H", Width = 45, AutoSizeMode = DataGridViewAutoSizeColumnMode.None, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } });
     }
 
     public static void LoadWindowConfigsForProfile(DataGridView dgv, GroupBox gb, Profile profile)
@@ -50,20 +51,9 @@ public static class WindowConfigGridUIManager
     public static void AddAndSelectWindowConfig(DataGridView dgv, Profile profile, WindowConfig newConfig)
     {
         if(profile == null || newConfig == null) return;
-        var bindingList = dgv.DataSource as SortableBindingList<WindowConfig> ?? new SortableBindingList<WindowConfig>(profile.WindowConfigs);
-        if(dgv.DataSource == null) profile.WindowConfigs.Clear(); // If it was null, ensure our list is the one
-
-        if(!bindingList.Contains(newConfig)) // ensure it's the correct list from the profile
-        {
-            if(!profile.WindowConfigs.Contains(newConfig)) profile.WindowConfigs.Add(newConfig);
-            bindingList = new SortableBindingList<WindowConfig>(profile.WindowConfigs); // re-bind
-            dgv.DataSource = bindingList;
-        }
-        bindingList.Add(newConfig); // This might cause duplicate if already in profile.WindowConfigs
-                                    // Simpler: add to profile.WindowConfigs, then re-create binding list for dgv
 
         profile.WindowConfigs.Add(newConfig);
-        dgv.DataSource = new SortableBindingList<WindowConfig>(profile.WindowConfigs); // Rebind
+        dgv.DataSource = new SortableBindingList<WindowConfig>(profile.WindowConfigs);
 
         if(dgv.Rows.Count > 0)
         {

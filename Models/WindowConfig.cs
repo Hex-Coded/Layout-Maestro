@@ -16,6 +16,7 @@ public class WindowConfig : INotifyPropertyChanged
     int _targetWidth;
     int _targetHeight;
     bool _launchAsAdmin = false;
+    bool _autoRelaunchEnabled = false;
 
     public bool LaunchAsAdmin { get => _launchAsAdmin; set => SetField(ref _launchAsAdmin, value); }
     public bool IsEnabled { get => _isEnabled; set => SetField(ref _isEnabled, value); }
@@ -28,7 +29,7 @@ public class WindowConfig : INotifyPropertyChanged
     public bool ControlSize { get => _controlSize; set => SetField(ref _controlSize, value); }
     public int TargetWidth { get => _targetWidth; set => SetField(ref _targetWidth, value); }
     public int TargetHeight { get => _targetHeight; set => SetField(ref _targetHeight, value); }
-
+    public bool AutoRelaunchEnabled { get => _autoRelaunchEnabled; set => SetField(ref _autoRelaunchEnabled, value); }
 
     public WindowConfig() { }
 
