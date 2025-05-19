@@ -1,11 +1,11 @@
-﻿using WindowPositioner.Services;
+﻿using WindowPlacementManager.Services;
 
-namespace WindowPositioner.Models
+namespace WindowPlacementManager.Models;
+
+public class AppSettingsData
 {
-    public class AppSettingsData
-    {
-        public List<Profile> Profiles { get; set; } = new List<Profile>();
-        public string ActiveProfileName { get; set; } = string.Empty;
-        public StartupType StartupOption { get; set; } = StartupType.None;
-    }
+    public List<Profile> Profiles { get; set; } = new List<Profile>();
+    public string ActiveProfileName { get; set; } = string.Empty;
+    public StartupType StartupOption { get; set; } = StartupType.None;
+    public bool DisableProgramActivity { get; set; } = true;
 }

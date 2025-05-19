@@ -1,15 +1,15 @@
-﻿namespace WindowPositioner
+﻿namespace WindowPlacementManager
 {
     partial class FormSelectProcess
     {
-        private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.ListView listViewProcesses;
-        private System.Windows.Forms.Button buttonSelect;
-        private System.Windows.Forms.Button buttonCancel;
-        private System.Windows.Forms.ColumnHeader columnHeaderProcessName;
-        private System.Windows.Forms.ColumnHeader columnHeaderPID;
-        private System.Windows.Forms.ColumnHeader columnHeaderWindowTitle;
-        private System.Windows.Forms.Button buttonRefresh;
+         System.ComponentModel.IContainer components = null;
+         System.Windows.Forms.ListView listViewProcesses;
+         System.Windows.Forms.Button buttonSelect;
+         System.Windows.Forms.Button buttonCancel;
+         System.Windows.Forms.ColumnHeader columnHeaderProcessName;
+         System.Windows.Forms.ColumnHeader columnHeaderPID;
+         System.Windows.Forms.ColumnHeader columnHeaderWindowTitle;
+         System.Windows.Forms.Button buttonRefresh;
 
         protected override void Dispose(bool disposing)
         {
@@ -20,7 +20,7 @@
             base.Dispose(disposing);
         }
 
-        private void InitializeComponent()
+         void InitializeComponent()
         {
             this.listViewProcesses = new System.Windows.Forms.ListView();
             this.columnHeaderProcessName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));

@@ -1,16 +1,16 @@
 ﻿using System.Diagnostics;
-using WindowPositioner;
-using WindowPositioner.Models;
-using WindowPositioner.Services;
-using Timer = System.Windows.Forms.Timer;
+using WindowPlacementManager;
+using WindowPlacementManager.Models;
+using WindowPlacementManager.Services;
 
 public class WindowMonitorService : IDisposable
 {
-    private readonly SettingsManager _settingsManager;
-    private AppSettingsData _currentSettings;
-    private Profile _activeProfile;
-    private readonly HashSet<int> _handledProcessIdsThisSession;
-    private Timer _timer;
+    readonly SettingsManager _settingsManager;
+    AppSettingsData _currentSettings;
+    Profile _activeProfile;
+    readonly HashSet<int> _handledProcessIdsThisSession;
+    System.Windows.Forms.Timer _timer;
+    bool _isProgramActivityDisabled = true;
 
     public WindowMonitorService(SettingsManager settingsManager)
     {
@@ -24,21 +24,35 @@ public class WindowMonitorService : IDisposable
     {
         _currentSettings = _settingsManager.LoadSettings();
         _activeProfile = _currentSettings.Profiles.FirstOrDefault(p => p.Name == _currentSettings.ActiveProfileName);
+        _isProgramActivityDisabled = _currentSettings.DisableProgramActivity;
         _handledProcessIdsThisSession.Clear();
     }
 
-    private void InitializeTimer()
+    public void SetPositioningActive(bool isActive)
     {
-        _timer = new Timer();
+        _isProgramActivityDisabled = !isActive;
+        if(isActive)
+        {
+        }
+    }
+
+    void InitializeTimer()
+    {
+        _timer = new System.Windows.Forms.Timer();
         _timer.Interval = 200;
         _timer.Tick += Timer_Tick;
         _timer.Start();
     }
 
-    private void Timer_Tick(object sender, EventArgs e) => ProcessWindows();
+    void Timer_Tick(object sender, EventArgs e) => ProcessWindows();
 
     public void ProcessWindows()
     {
+        if(_isProgramActivityDisabled)
+        {
+            return;
+        }
+
         if(_activeProfile == null || !_activeProfile.WindowConfigs.Any())
         {
             return;
@@ -84,7 +98,6 @@ public class WindowMonitorService : IDisposable
                         targetX = config.TargetX;
                         targetY = config.TargetY;
                     }
-
                     if(config.ControlSize)
                     {
                         targetWidth = config.TargetWidth;
@@ -92,7 +105,6 @@ public class WindowMonitorService : IDisposable
                     }
 
                     if(targetWidth <= 0 || targetHeight <= 0) continue;
-
 
                     NativeMethods.MoveWindow(hWnd, targetX, targetY, targetWidth, targetHeight, true);
                     _handledProcessIdsThisSession.Add(process.Id);
@@ -105,8 +117,6 @@ public class WindowMonitorService : IDisposable
         }
     }
 
-
-
     public void TestProfileLayout(Profile profileToTest)
     {
         if(profileToTest == null || !profileToTest.WindowConfigs.Any())
@@ -115,7 +125,6 @@ public class WindowMonitorService : IDisposable
             return;
         }
 
-        // Use a temporary "handled" set for this test run to ensure all windows in the profile are processed
         HashSet<int> handledProcessIdsThisTestRun = new HashSet<int>();
 
         foreach(var config in profileToTest.WindowConfigs.Where(c => c.IsEnabled))
@@ -127,11 +136,8 @@ public class WindowMonitorService : IDisposable
                 Process[] processes = Process.GetProcessesByName(config.ProcessName);
                 foreach(var process in processes)
                 {
-                    // For a test, we always try to apply, ignoring _handledProcessIdsThisSession
-                    // We use handledProcessIdsThisTestRun to ensure one-time-per-process *within this test*.
                     if(handledProcessIdsThisTestRun.Contains(process.Id))
                     {
-                        // Check if process is still alive, if not, remove from handled set
                         try { Process.GetProcessById(process.Id); }
                         catch(ArgumentException) { handledProcessIdsThisTestRun.Remove(process.Id); continue; }
                         continue;
@@ -140,7 +146,6 @@ public class WindowMonitorService : IDisposable
                     IntPtr hWnd = process.MainWindowHandle;
                     if(hWnd == IntPtr.Zero) continue;
 
-                    // Optional: Title Hint Check (same as in regular ProcessWindows)
                     if(!string.IsNullOrWhiteSpace(config.WindowTitleHint))
                     {
                         string currentTitle = NativeMethods.GetWindowTitle(hWnd);
@@ -162,7 +167,6 @@ public class WindowMonitorService : IDisposable
                         targetX = config.TargetX;
                         targetY = config.TargetY;
                     }
-
                     if(config.ControlSize)
                     {
                         targetWidth = config.TargetWidth;
@@ -171,13 +175,13 @@ public class WindowMonitorService : IDisposable
 
                     if(targetWidth <= 0 || targetHeight <= 0)
                     {
-                        Debug.WriteLine($"TestProfileLayout: Skipping {config.ProcessName} due to invalid target dimensions W:{targetWidth} H:{targetHeight}");
+                        Debug.WriteLine($"TestProfileLayout: Skipping {config.ProcessName} (PID:{process.Id}) due to invalid target/current dimensions W:{targetWidth} H:{targetHeight}");
                         continue;
                     }
 
                     NativeMethods.MoveWindow(hWnd, targetX, targetY, targetWidth, targetHeight, true);
                     handledProcessIdsThisTestRun.Add(process.Id);
-                    Debug.WriteLine($"TestProfileLayout: Moved {config.ProcessName} (PID: {process.Id}, hWnd: {hWnd})");
+                    Debug.WriteLine($"TestProfileLayout: Moved {config.ProcessName} (PID: {process.Id}, hWnd: {hWnd}) to X:{targetX} Y:{targetY} W:{targetWidth} H:{targetHeight}");
                 }
             }
             catch(Exception ex)
@@ -188,11 +192,11 @@ public class WindowMonitorService : IDisposable
         Debug.WriteLine("TestProfileLayout: Test run completed.");
     }
 
-    public void ForceProfileReload() => LoadAndApplySettings();
 
     public void Dispose()
     {
         _timer?.Stop();
         _timer?.Dispose();
+        _timer = null;
     }
 }

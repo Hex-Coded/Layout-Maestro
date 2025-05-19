@@ -2,9 +2,9 @@
 
 public class SortableBindingList<T> : BindingList<T>
 {
-    private bool _isSorted;
-    private ListSortDirection _sortDirection = ListSortDirection.Ascending;
-    private PropertyDescriptor _sortProperty;
+    bool _isSorted;
+    ListSortDirection _sortDirection = ListSortDirection.Ascending;
+    PropertyDescriptor _sortProperty;
 
     public SortableBindingList() : base()
     {
@@ -47,7 +47,7 @@ public class SortableBindingList<T> : BindingList<T>
         OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
     }
 
-    private int Compare(T x, T y)
+    int Compare(T x, T y)
     {
         if(_sortProperty == null)
             return 0;

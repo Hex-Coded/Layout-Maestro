@@ -1,197 +1,173 @@
 ﻿using System.Diagnostics;
 using Microsoft.Win32;
 
-namespace WindowPositioner.Services
+namespace WindowPlacementManager.Services;
+
+public enum StartupType
 {
-    public enum StartupType
+    None,
+    Normal,
+    Admin
+}
+
+public class StartupManager
+{
+    const string AppName = "WindowPlacementManager";
+    const string ScheduledTaskName = "WindowPlacementManagerAutoStartAdmin";
+    static readonly RegistryKey RkAppRun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+    public StartupType GetCurrentStartupType()
     {
-        None,
-        Normal,
-        Admin
+        if(IsScheduledTaskForAdminStartupSet())
+        {
+            return StartupType.Admin;
+        }
+        if(RkAppRun.GetValue(AppName) != null)
+        {
+            return StartupType.Normal;
+        }
+        return StartupType.None;
     }
 
-    public class StartupManager
+    public void SetStartup(StartupType startupType)
     {
-        private const string AppName = "WindowPositioner";
-        private const string ScheduledTaskName = "WindowPositionerAutoStartAdmin"; // Unique name for the scheduled task
-        private static readonly RegistryKey RkAppRun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+        ClearNormalStartup();
+        ClearAdminStartupTask();
 
-        public StartupType GetCurrentStartupType()
+        switch(startupType)
         {
-            if(IsScheduledTaskForAdminStartupSet())
-            {
-                return StartupType.Admin;
-            }
+            case StartupType.None:
+                break;
+            case StartupType.Normal:
+                SetNormalStartup();
+                break;
+            case StartupType.Admin:
+                SetAdminStartupTask();
+                break;
+        }
+    }
+
+    void SetNormalStartup()
+    {
+        try
+        {
+            RkAppRun.SetValue(AppName, Application.ExecutablePath);
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"Error setting normal startup: {ex.Message}");
+        }
+    }
+
+    void ClearNormalStartup()
+    {
+        try
+        {
             if(RkAppRun.GetValue(AppName) != null)
             {
-                return StartupType.Normal;
-            }
-            return StartupType.None;
-        }
-
-        public void SetStartup(StartupType startupType)
-        {
-            // First, clear any existing startup methods to avoid conflicts
-            ClearNormalStartup();
-            ClearAdminStartupTask();
-
-            switch(startupType)
-            {
-                case StartupType.None:
-                    // Already cleared
-                    break;
-                case StartupType.Normal:
-                    SetNormalStartup();
-                    break;
-                case StartupType.Admin:
-                    // Check if current process is admin. If not, cannot create admin task without UAC.
-                    // For simplicity, we'll attempt it. If it fails, user might need to run app as admin once to set this.
-                    SetAdminStartupTask();
-                    break;
+                RkAppRun.DeleteValue(AppName, false);
             }
         }
-
-        private void SetNormalStartup()
+        catch(Exception ex)
         {
-            try
-            {
-                RkAppRun.SetValue(AppName, Application.ExecutablePath);
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine($"Error setting normal startup: {ex.Message}");
-                // Optionally inform user
-            }
+            Debug.WriteLine($"Error clearing normal startup: {ex.Message}");
         }
+    }
 
-        private void ClearNormalStartup()
+    bool IsScheduledTaskForAdminStartupSet()
+    {
+        try
         {
-            try
+            ProcessStartInfo psi = new ProcessStartInfo("schtasks", $"/Query /TN \"{ScheduledTaskName}\"")
             {
-                if(RkAppRun.GetValue(AppName) != null)
-                {
-                    RkAppRun.DeleteValue(AppName, false);
-                }
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine($"Error clearing normal startup: {ex.Message}");
-            }
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using Process process = Process.Start(psi);
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            return output.Contains(ScheduledTaskName) && process.ExitCode == 0;
         }
-
-        private bool IsScheduledTaskForAdminStartupSet()
+        catch(Exception ex)
         {
-            try
-            {
-                ProcessStartInfo psi = new ProcessStartInfo("schtasks", $"/Query /TN \"{ScheduledTaskName}\"")
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using(Process process = Process.Start(psi))
-                {
-                    string output = process.StandardOutput.ReadToEnd();
-                    process.WaitForExit();
-                    // If the task is found, schtasks doesn't return error code but output contains task name
-                    // If not found, it might return an error or specific message.
-                    // A simple check: if output contains the task name, assume it exists.
-                    return output.Contains(ScheduledTaskName) && process.ExitCode == 0;
-                }
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine($"Error checking scheduled task: {ex.Message}");
-                return false;
-            }
+            Debug.WriteLine($"Error checking scheduled task: {ex.Message}");
+            return false;
         }
+    }
 
-        private void SetAdminStartupTask()
+    void SetAdminStartupTask()
+    {
+        try
         {
-            try
+            string exePath = Application.ExecutablePath;
+            string arguments = $"/Create /SC ONLOGON /TN \"{ScheduledTaskName}\" /TR \"\\\"{exePath}\\\"\" /RL HIGHEST /F";
+
+            ProcessStartInfo psi = new ProcessStartInfo("schtasks", arguments)
             {
-                string exePath = Application.ExecutablePath;
-                // Command to create a scheduled task that runs at logon with highest privileges
-                // /SC ONLOGON: Runs when any user logs on.
-                // /RL HIGHEST: Runs with highest privileges.
-                // /F: Force create task if it exists.
-                // /TR \"'{exePath}'\": The command to run (note quotes for paths with spaces)
-                string arguments = $"/Create /SC ONLOGON /TN \"{ScheduledTaskName}\" /TR \"\\\"{exePath}\\\"\" /RL HIGHEST /F";
-
-                ProcessStartInfo psi = new ProcessStartInfo("schtasks", arguments)
-                {
-                    Verb = "runas", // Request elevation for schtasks itself if current process isn't admin
-                    UseShellExecute = true, // Required for verb runas
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-
-                try
-                {
-                    using(Process process = Process.Start(psi))
-                    {
-                        process.WaitForExit();
-                        if(process.ExitCode != 0)
-                        {
-                            Debug.WriteLine($"schtasks.exe exited with code {process.ExitCode} while setting admin startup.");
-                            // Consider notifying the user that setting admin startup might have failed,
-                            // possibly due to UAC denial or insufficient permissions.
-                            MessageBox.Show("Failed to set 'Boot with Windows as Admin'.\nThis might be due to UAC prompt denial or insufficient permissions.\nTry running Window Positioner as Administrator once to set this option.",
-                                            "Admin Startup Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        }
-                    }
-                }
-                catch(System.ComponentModel.Win32Exception ex) when(ex.NativeErrorCode == 1223) // 1223: The operation was canceled by the user (UAC)
-                {
-                    Debug.WriteLine("Admin startup task creation was cancelled by UAC.");
-                    MessageBox.Show("Setting 'Boot with Windows as Admin' was cancelled (UAC prompt).",
-                                    "Admin Startup Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine($"Error setting admin startup task: {ex.Message}");
-                MessageBox.Show($"An error occurred while trying to set 'Boot with Windows as Admin':\n{ex.Message}",
-                                "Admin Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ClearAdminStartupTask()
-        {
-            if(!IsScheduledTaskForAdminStartupSet()) return; // No need to delete if not set
+                Verb = "runas",
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
 
             try
             {
-                // Command to delete the scheduled task
-                // /F: Force delete
-                string arguments = $"/Delete /TN \"{ScheduledTaskName}\" /F";
-                ProcessStartInfo psi = new ProcessStartInfo("schtasks", arguments)
+                using Process process = Process.Start(psi);
+                process.WaitForExit();
+                if(process.ExitCode != 0)
                 {
-                    Verb = "runas", // May need elevation to delete task created by admin
-                    UseShellExecute = true,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-                try
-                {
-                    using(Process process = Process.Start(psi))
-                    {
-                        process.WaitForExit();
-                        if(process.ExitCode != 0)
-                        {
-                            Debug.WriteLine($"schtasks.exe exited with code {process.ExitCode} while clearing admin startup.");
-                        }
-                    }
-                }
-                catch(System.ComponentModel.Win32Exception ex) when(ex.NativeErrorCode == 1223)
-                {
-                    Debug.WriteLine("Admin startup task deletion was cancelled by UAC.");
+                    Debug.WriteLine($"schtasks.exe exited with code {process.ExitCode} while setting admin startup.");
+                    MessageBox.Show("Failed to set 'Boot with Windows as Admin'.\nThis might be due to UAC prompt denial or insufficient permissions.\nTry running Window Positioner as Administrator once to set this option.",
+                                    "Admin Startup Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
-            catch(Exception ex)
+            catch(System.ComponentModel.Win32Exception ex) when(ex.NativeErrorCode == 1223)
             {
-                Debug.WriteLine($"Error clearing admin startup task: {ex.Message}");
+                Debug.WriteLine("Admin startup task creation was cancelled by UAC.");
+                MessageBox.Show("Setting 'Boot with Windows as Admin' was cancelled (UAC prompt).",
+                                "Admin Startup Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"Error setting admin startup task: {ex.Message}");
+            MessageBox.Show($"An error occurred while trying to set 'Boot with Windows as Admin':\n{ex.Message}",
+                            "Admin Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    void ClearAdminStartupTask()
+    {
+        if(!IsScheduledTaskForAdminStartupSet()) return;
+
+        try
+        {
+            string arguments = $"/Delete /TN \"{ScheduledTaskName}\" /F";
+            ProcessStartInfo psi = new ProcessStartInfo("schtasks", arguments)
+            {
+                Verb = "runas",
+                UseShellExecute = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+            try
+            {
+                using Process process = Process.Start(psi);
+                process.WaitForExit();
+                if(process.ExitCode != 0)
+                {
+                    Debug.WriteLine($"schtasks.exe exited with code {process.ExitCode} while clearing admin startup.");
+                }
+            }
+            catch(System.ComponentModel.Win32Exception ex) when(ex.NativeErrorCode == 1223)
+            {
+                Debug.WriteLine("Admin startup task deletion was cancelled by UAC.");
+            }
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"Error clearing admin startup task: {ex.Message}");
         }
     }
 }
