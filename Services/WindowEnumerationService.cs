@@ -12,13 +12,13 @@ public static class WindowEnumerationService
         public string ProcessNameCache { get; set; }
         public string Title { get; set; }
 
-        Process _process;
+        Process process;
         public Process GetProcess()
         {
-            if(_process == null || _process.HasExited)
-                try { _process = Process.GetProcessById(ProcessId); }
-                catch { _process = null; }
-            return _process;
+            if(process == null || process.HasExited)
+                try { process = Process.GetProcessById(ProcessId); }
+                catch { process = null; }
+            return process;
         }
     }
 

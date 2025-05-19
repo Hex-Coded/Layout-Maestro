@@ -25,7 +25,7 @@ public static class Native
 
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true, EntryPoint = "GetWindowText")]
-    private static extern int GetWindowTextInternal(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+    static extern int GetWindowTextInternal(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);

@@ -6,24 +6,24 @@ namespace WindowPlacementManager.Services;
 
 public static class ProcessPrivilegeChecker
 {
-    private const uint TOKEN_QUERY = 0x0008;
-    private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
-    private const int ERROR_ACCESS_DENIED = 5;
+    const uint TOKEN_QUERY = 0x0008;
+    const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+    const int ERROR_ACCESS_DENIED = 5;
 
     [DllImport("advapi32.dll", SetLastError = true)]
-    private static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+    static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
 
     [DllImport("advapi32.dll", SetLastError = true)]
-    private static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+    static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CloseHandle(IntPtr hObject);
+    static extern bool CloseHandle(IntPtr hObject);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
+    static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
 
-    private enum TOKEN_INFORMATION_CLASS
+    enum TOKEN_INFORMATION_CLASS
     {
         TokenUser = 1,
         TokenGroups,
@@ -56,12 +56,12 @@ public static class ProcessPrivilegeChecker
         MaxTokenInfoClass
     }
 
-    private struct TOKEN_ELEVATION
+    struct TOKEN_ELEVATION
     {
         public uint TokenIsElevated;
     }
 
-    private static bool? _isCurrentProcessElevatedCache = null;
+    static bool? _isCurrentProcessElevatedCache = null;
     public static bool IsCurrentProcessElevated()
     {
         if(_isCurrentProcessElevatedCache == null)

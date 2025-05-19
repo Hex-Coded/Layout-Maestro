@@ -5,76 +5,76 @@ namespace WindowPlacementManager.Services;
 
 public class WindowMonitorService : IDisposable
 {
-    readonly SettingsManager _settingsManager;
-    readonly WindowActionService _windowActionService;
-    AppSettingsData _currentSettings;
-    Profile _activeProfile;
-    readonly HashSet<IntPtr> _handledWindowHandlesThisCycle;
-    System.Windows.Forms.Timer _timer;
-    bool _isProgramActivityDisabled = true;
+    readonly SettingsManager settingsManager;
+    readonly WindowActionService windowActionService;
+    AppSettingsData currentSettings;
+    Profile activeProfile;
+    readonly HashSet<IntPtr> handledWindowHandlesThisCycle;
+    System.Windows.Forms.Timer timer;
+    bool isProgramActivityDisabled = true;
 
-    readonly Dictionary<string, int> _autoRelaunchLastKnownPids = new();
-    readonly Dictionary<string, DateTime> _autoRelaunchLastAttemptTimestamps = new();
+    readonly Dictionary<string, int> autoRelaunchLastKnownPids = new();
+    readonly Dictionary<string, DateTime> autoRelaunchLastAttemptTimestamps = new();
     const int RelaunchCooldownSeconds = 10;
 
 
     public WindowMonitorService(SettingsManager settingsManager, WindowActionService windowActionService)
     {
-        _settingsManager = settingsManager;
-        _windowActionService = windowActionService;
-        _handledWindowHandlesThisCycle = new HashSet<IntPtr>();
+        this.settingsManager = settingsManager;
+        this.windowActionService = windowActionService;
+        handledWindowHandlesThisCycle = new HashSet<IntPtr>();
     }
 
     public void LoadAndApplySettings()
     {
-        _currentSettings = _settingsManager.LoadSettings();
-        _isProgramActivityDisabled = _currentSettings.DisableProgramActivity;
-        if(_isProgramActivityDisabled)
+        currentSettings = settingsManager.LoadSettings();
+        isProgramActivityDisabled = currentSettings.DisableProgramActivity;
+        if(isProgramActivityDisabled)
         {
-            _autoRelaunchLastKnownPids.Clear();
-            _autoRelaunchLastAttemptTimestamps.Clear();
+            autoRelaunchLastKnownPids.Clear();
+            autoRelaunchLastAttemptTimestamps.Clear();
         }
     }
 
-    public string GetActiveProfileNameFromSettings() => _settingsManager.LoadSettings().ActiveProfileName;
+    public string GetActiveProfileNameFromSettings() => settingsManager.LoadSettings().ActiveProfileName;
 
     public void UpdateActiveProfileReference(Profile liveProfile)
     {
-        bool profileEffectivelyChanged = _activeProfile?.Name != liveProfile?.Name || _activeProfile == null || liveProfile == null;
+        bool profileEffectivelyChanged = activeProfile?.Name != liveProfile?.Name || activeProfile == null || liveProfile == null;
 
-        _activeProfile = liveProfile;
+        activeProfile = liveProfile;
         Debug.WriteLine($"WindowMonitorService: Active profile reference updated to '{liveProfile?.Name ?? "null"}'.");
 
-        if(profileEffectivelyChanged || _isProgramActivityDisabled)
+        if(profileEffectivelyChanged || isProgramActivityDisabled)
         {
-            _autoRelaunchLastKnownPids.Clear();
-            _autoRelaunchLastAttemptTimestamps.Clear();
+            autoRelaunchLastKnownPids.Clear();
+            autoRelaunchLastAttemptTimestamps.Clear();
         }
     }
 
     public void SetPositioningActive(bool isActive)
     {
-        _isProgramActivityDisabled = !isActive;
-        Debug.WriteLine($"WindowMonitorService: PositioningActive set to {isActive}. IsProgramActivityDisabled: {_isProgramActivityDisabled}");
-        if(_isProgramActivityDisabled)
+        isProgramActivityDisabled = !isActive;
+        Debug.WriteLine($"WindowMonitorService: PositioningActive set to {isActive}. IsProgramActivityDisabled: {isProgramActivityDisabled}");
+        if(isProgramActivityDisabled)
         {
-            _autoRelaunchLastKnownPids.Clear();
-            _autoRelaunchLastAttemptTimestamps.Clear();
+            autoRelaunchLastKnownPids.Clear();
+            autoRelaunchLastAttemptTimestamps.Clear();
         }
     }
 
     public void InitializeTimer()
     {
-        if(_timer != null) { Debug.WriteLine("WindowMonitorService Timer already initialized."); return; }
-        _timer = new System.Windows.Forms.Timer { Interval = 1000 };
-        _timer.Tick += Timer_Tick;
-        _timer.Start();
+        if(timer != null) { Debug.WriteLine("WindowMonitorService Timer already initialized."); return; }
+        timer = new System.Windows.Forms.Timer { Interval = 1000 };
+        timer.Tick += Timer_Tick;
+        timer.Start();
         Debug.WriteLine("WindowMonitorService Timer Initialized and Started (1s interval).");
     }
 
     void Timer_Tick(object sender, EventArgs e)
     {
-        if(_isProgramActivityDisabled || _activeProfile == null) return;
+        if(isProgramActivityDisabled || activeProfile == null) return;
 
         ProactiveAutoRelaunchCheckAndLaunch();
         ProcessWindowPositioningLogic();
@@ -82,10 +82,10 @@ public class WindowMonitorService : IDisposable
 
     void ProactiveAutoRelaunchCheckAndLaunch()
     {
-        if(_activeProfile == null || !_activeProfile.WindowConfigs.Any()) return;
+        if(activeProfile == null || !activeProfile.WindowConfigs.Any()) return;
 
 
-        foreach(var config in _activeProfile.WindowConfigs.Where(c => c.IsEnabled && c.AutoRelaunchEnabled))
+        foreach(var config in activeProfile.WindowConfigs.Where(c => c.IsEnabled && c.AutoRelaunchEnabled))
         {
             string configKey = GetConfigKey(config);
 
@@ -94,15 +94,15 @@ public class WindowMonitorService : IDisposable
 
             if(currentProcess != null && !currentProcess.HasExited)
             {
-                _autoRelaunchLastKnownPids[configKey] = currentProcess.Id;
-                if(_autoRelaunchLastAttemptTimestamps.ContainsKey(configKey))
-                    _autoRelaunchLastAttemptTimestamps.Remove(configKey);
+                autoRelaunchLastKnownPids[configKey] = currentProcess.Id;
+                if(autoRelaunchLastAttemptTimestamps.ContainsKey(configKey))
+                    autoRelaunchLastAttemptTimestamps.Remove(configKey);
                 currentProcess.Dispose();
             }
             else
             {
                 bool specificInstanceExited = false;
-                if(_autoRelaunchLastKnownPids.TryGetValue(configKey, out int lastPid))
+                if(autoRelaunchLastKnownPids.TryGetValue(configKey, out int lastPid))
                 {
                     try
                     {
@@ -114,11 +114,11 @@ public class WindowMonitorService : IDisposable
                     catch(InvalidOperationException) { specificInstanceExited = true; }
                 }
 
-                bool needsLaunch = !_autoRelaunchLastKnownPids.ContainsKey(configKey) || specificInstanceExited || (currentProcess == null || currentProcess.HasExited);
+                bool needsLaunch = !autoRelaunchLastKnownPids.ContainsKey(configKey) || specificInstanceExited || (currentProcess == null || currentProcess.HasExited);
 
                 if(needsLaunch)
                 {
-                    if(_autoRelaunchLastAttemptTimestamps.TryGetValue(configKey, out DateTime lastAttempt) &&
+                    if(autoRelaunchLastAttemptTimestamps.TryGetValue(configKey, out DateTime lastAttempt) &&
                         (DateTime.UtcNow - lastAttempt).TotalSeconds < RelaunchCooldownSeconds)
                     {
                         Debug.WriteLine($"AutoRelaunch: Skipping launch for '{config.ProcessName}' due to cooldown.");
@@ -126,13 +126,13 @@ public class WindowMonitorService : IDisposable
                     }
 
                     Debug.WriteLine($"AutoRelaunch: Process for '{config.ProcessName}' (key: {configKey}) not running or exited. Attempting launch.");
-                    bool launched = _windowActionService.LaunchApp(config);
-                    _autoRelaunchLastAttemptTimestamps[configKey] = DateTime.UtcNow;
+                    bool launched = windowActionService.LaunchApp(config);
+                    autoRelaunchLastAttemptTimestamps[configKey] = DateTime.UtcNow;
 
                     if(launched)
                     {
                         Debug.WriteLine($"AutoRelaunch: Launch initiated for '{config.ProcessName}'. Will find new PID on next tick.");
-                        _autoRelaunchLastKnownPids.Remove(configKey);
+                        autoRelaunchLastKnownPids.Remove(configKey);
                     }
                     else
                     {
@@ -143,20 +143,17 @@ public class WindowMonitorService : IDisposable
         }
     }
 
-    string GetConfigKey(WindowConfig config)
-    {
-        return config.ProcessName.ToLowerInvariant();
-    }
+    string GetConfigKey(WindowConfig config) => config.ProcessName.ToLowerInvariant();
 
 
     void ProcessWindowPositioningLogic()
     {
-        if(_activeProfile == null || _isProgramActivityDisabled) return;
-        if(!_activeProfile.WindowConfigs.Any(c => c.IsEnabled && (c.ControlPosition || c.ControlSize))) return;
+        if(activeProfile == null || isProgramActivityDisabled) return;
+        if(!activeProfile.WindowConfigs.Any(c => c.IsEnabled && (c.ControlPosition || c.ControlSize))) return;
 
-        _handledWindowHandlesThisCycle.Clear();
-        var configsForPositioning = new List<WindowConfig>(_activeProfile.WindowConfigs.Where(c => c.IsEnabled));
-        ProcessWindowConfigurations(configsForPositioning, _handledWindowHandlesThisCycle, false, "ProcessWindows");
+        handledWindowHandlesThisCycle.Clear();
+        var configsForPositioning = new List<WindowConfig>(activeProfile.WindowConfigs.Where(c => c.IsEnabled));
+        ProcessWindowConfigurations(configsForPositioning, handledWindowHandlesThisCycle, false, "ProcessWindows");
     }
 
     public void TestProfileLayout(Profile profileToTest)
@@ -200,5 +197,5 @@ public class WindowMonitorService : IDisposable
     }
     (int X, int Y, int Width, int Height) CalculateTargetDimensions(WindowConfig config, RECT currentRect) => (config.ControlPosition ? config.TargetX : currentRect.Left, config.ControlPosition ? config.TargetY : currentRect.Top, config.ControlSize ? config.TargetWidth : currentRect.Width, config.ControlSize ? config.TargetHeight : currentRect.Height);
     bool ShouldApplyWindowChanges(WindowConfig config, RECT currentRect, (int X, int Y, int Width, int Height) targetDimensions) => (config.ControlPosition && (currentRect.Left != targetDimensions.X || currentRect.Top != targetDimensions.Y)) || (config.ControlSize && (currentRect.Width != targetDimensions.Width || currentRect.Height != targetDimensions.Height));
-    public void Dispose() { _timer?.Stop(); _timer?.Dispose(); _timer = null; Debug.WriteLine("WindowMonitorService Timer Disposed."); }
+    public void Dispose() { timer?.Stop(); timer?.Dispose(); timer = null; Debug.WriteLine("WindowMonitorService Timer Disposed."); }
 }

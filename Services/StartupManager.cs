@@ -16,14 +16,10 @@ public class StartupManager
     const string ScheduledTaskName = "WindowPlacementManagerAutoStartAdmin";
     static readonly RegistryKey RkAppRun = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
-    public StartupType GetCurrentStartupType() =>
-        IsScheduledTaskForAdminStartupSet() ? StartupType.Admin :
-        (RkAppRun.GetValue(AppName) != null ? StartupType.Normal : StartupType.None);
+    public StartupType GetCurrentStartupType() => IsScheduledTaskForAdminStartupSet() ? StartupType.Admin : (RkAppRun.GetValue(AppName) != null ? StartupType.Normal : StartupType.None);
 
     public void SetStartup(StartupType startupType)
     {
-
-
         StartupType currentSystemType = GetCurrentStartupType();
         if(currentSystemType == startupType) return;
 
@@ -43,12 +39,6 @@ public class StartupManager
                 if(currentSystemType != StartupType.Admin) SetAdminStartupTask();
                 break;
         }
-    }
-
-    void ClearAllStartupSettings()
-    {
-        ClearNormalStartup();
-        ClearAdminStartupTask();
     }
 
     void SetNormalStartup()

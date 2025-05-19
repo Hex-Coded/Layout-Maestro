@@ -430,7 +430,7 @@ public partial class FormMain : Form
     void ForceExitApplication() { _windowMonitorService?.Dispose(); TrayIconUIManager.DisposeNotifyIcon(notifyIconMain); notifyIconMain = null; Environment.Exit(0); }
     void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { }
 
-    private void buttonFocus_Click(object sender, EventArgs e)
+    void buttonFocus_Click(object sender, EventArgs e)
     {
         var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
         if(selectedConfig == null)

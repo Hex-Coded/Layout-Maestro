@@ -14,9 +14,7 @@ public static class ProfileUIManager
         foreach(var profile in profiles) comboBox.Items.Add(profile);
         comboBox.EndUpdate();
 
-        Profile profileToSelect = profiles.FirstOrDefault(p => p.Name == previouslySelectedName) ??
-                                  profiles.FirstOrDefault(p => p.Name == currentActiveProfileName) ??
-                                  profiles.FirstOrDefault();
+        Profile profileToSelect = profiles.FirstOrDefault(p => p.Name == previouslySelectedName) ?? profiles.FirstOrDefault(p => p.Name == currentActiveProfileName) ?? profiles.FirstOrDefault();
         if(profileToSelect != null) comboBox.SelectedItem = profileToSelect;
     }
 
@@ -112,11 +110,10 @@ public static class ProfileUIManager
         string removedProfileName = profileToRemove.Name;
         profiles.Remove(profileToRemove);
         if(currentActiveProfileName == removedProfileName)
-            return profiles.FirstOrDefault()?.Name ?? string.Empty; // Return new active name
-        return null; // Active name did not change
+            return profiles.FirstOrDefault()?.Name ?? string.Empty;
+        return null;
     }
 
-    // Returns the new profile name if it was changed and was the active one, otherwise null
     public static string HandleRenameProfile(List<Profile> profiles, Profile profileToRename, string currentActiveProfileName)
     {
         if(profileToRename == null) return null;
@@ -130,7 +127,7 @@ public static class ProfileUIManager
         bool isActive = currentActiveProfileName == profileToRename.Name;
         profileToRename.Name = newName;
         if(isActive)
-            return newName; // Return new active name
-        return null; // Active name did not change, or this wasn't the active profile
+            return newName;
+        return null;
     }
 }

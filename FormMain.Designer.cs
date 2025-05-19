@@ -2,50 +2,50 @@
 {
     partial class FormMain
     {
-        private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.NotifyIcon notifyIconMain;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStripTray;
-        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.TabControl tabControlMain;
-        private System.Windows.Forms.TabPage tabPageProfiles;
-        private System.Windows.Forms.TabPage tabPageSettings;
-        private System.Windows.Forms.GroupBox groupBoxProfiles;
-        private System.Windows.Forms.Button buttonRemoveProfile;
-        private System.Windows.Forms.Button buttonAddProfile;
-        private System.Windows.Forms.GroupBox groupBoxWindowConfigs;
-        private System.Windows.Forms.DataGridView dataGridViewWindowConfigs;
-        private System.Windows.Forms.Button buttonRemoveWindowConfig;
-        private System.Windows.Forms.Button buttonAddWindowConfig;
-        private System.Windows.Forms.Button buttonSaveChanges;
-        private System.Windows.Forms.Label labelActiveProfile;
-        private System.Windows.Forms.ComboBox comboBoxActiveProfile;
-        private System.Windows.Forms.Button buttonRenameProfile;
-        private System.Windows.Forms.ToolTip toolTipGeneral;
-        private System.Windows.Forms.Button buttonFetchPosition;
-        private System.Windows.Forms.Button buttonFetchSize;
-        private System.Windows.Forms.Button buttonCloneProfile;
-        private System.Windows.Forms.Button buttonTestSelectedProfile;
-        private System.Windows.Forms.Label labelStartupOptions;
-        private System.Windows.Forms.ComboBox comboBoxStartupOptions;
-        private System.Windows.Forms.LinkLabel linkLabelGitHub;
-        private System.Windows.Forms.Label labelCredits;
-        private System.Windows.Forms.CheckBox checkBoxDisableProgram;
+     System.ComponentModel.IContainer components = null;
+     System.Windows.Forms.NotifyIcon notifyIconMain;
+     System.Windows.Forms.ContextMenuStrip contextMenuStripTray;
+     System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+     System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+     System.Windows.Forms.TabControl tabControlMain;
+     System.Windows.Forms.TabPage tabPageProfiles;
+     System.Windows.Forms.TabPage tabPageSettings;
+     System.Windows.Forms.GroupBox groupBoxProfiles;
+     System.Windows.Forms.Button buttonRemoveProfile;
+     System.Windows.Forms.Button buttonAddProfile;
+     System.Windows.Forms.GroupBox groupBoxWindowConfigs;
+     System.Windows.Forms.DataGridView dataGridViewWindowConfigs;
+     System.Windows.Forms.Button buttonRemoveWindowConfig;
+     System.Windows.Forms.Button buttonAddWindowConfig;
+     System.Windows.Forms.Button buttonSaveChanges;
+     System.Windows.Forms.Label labelActiveProfile;
+     System.Windows.Forms.ComboBox comboBoxActiveProfile;
+     System.Windows.Forms.Button buttonRenameProfile;
+     System.Windows.Forms.ToolTip toolTipGeneral;
+     System.Windows.Forms.Button buttonFetchPosition;
+     System.Windows.Forms.Button buttonFetchSize;
+     System.Windows.Forms.Button buttonCloneProfile;
+     System.Windows.Forms.Button buttonTestSelectedProfile;
+     System.Windows.Forms.Label labelStartupOptions;
+     System.Windows.Forms.ComboBox comboBoxStartupOptions;
+     System.Windows.Forms.LinkLabel linkLabelGitHub;
+     System.Windows.Forms.Label labelCredits;
+     System.Windows.Forms.CheckBox checkBoxDisableProgram;
 
-        private System.Windows.Forms.Button buttonActivateLaunchApp;
-        private System.Windows.Forms.Button buttonLaunchAllProfileApps;
-        private System.Windows.Forms.Button buttonFocusAllProfileApps;
+     System.Windows.Forms.Button buttonActivateLaunchApp;
+     System.Windows.Forms.Button buttonLaunchAllProfileApps;
+     System.Windows.Forms.Button buttonFocusAllProfileApps;
 
 
         // NEW ACTION BUTTONS
-        private System.Windows.Forms.Button buttonCloseApp;          // For selected app
-        private System.Windows.Forms.Button buttonCloseAllProfileApps; // For all apps in profile
+     System.Windows.Forms.Button buttonCloseApp;          // For selected app
+     System.Windows.Forms.Button buttonCloseAllProfileApps; // For all apps in profile
 
         // UI STRUCTURE
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelProfileActions; // New
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelItemActions;   // New
-        private System.Windows.Forms.Label labelProfileActions; // New
-        private System.Windows.Forms.Label labelItemActions;    // New
+     System.Windows.Forms.FlowLayoutPanel flowLayoutPanelProfileActions; // New
+     System.Windows.Forms.FlowLayoutPanel flowLayoutPanelItemActions;   // New
+     System.Windows.Forms.Label labelProfileActions; // New
+     System.Windows.Forms.Label labelItemActions;    // New
 
 
         protected override void Dispose(bool disposing)
@@ -57,7 +57,7 @@
             base.Dispose(disposing);
         }
 
-        private void InitializeComponent()
+     void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
             notifyIconMain = new NotifyIcon(components);
@@ -552,6 +552,6 @@
             tabPageSettings.PerformLayout();
             ResumeLayout(false);
         }
-        private Button buttonFocus;
+     Button buttonFocus;
     }
 }

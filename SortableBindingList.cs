@@ -85,12 +85,10 @@ public class SortableBindingList<T> : BindingList<T>
         return _sortDirection == ListSortDirection.Ascending ? comparisonResult : -comparisonResult;
     }
 
-
     protected override void RemoveSortCore()
     {
         _isSorted = false;
         _sortProperty = null;
         OnListChanged(new ListChangedEventArgs(ListChangedType.Reset, -1));
     }
-
 }

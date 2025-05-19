@@ -9,7 +9,7 @@ public partial class FormSelectProcess : Form
     public IntPtr SelectedWindowHandle { get; private set; }
     public string SelectedWindowTitle { get; private set; }
 
-    private bool _isSelfElevated;
+    bool isSelfElevated;
 
     public class WindowSelectionInfo
     {
@@ -26,11 +26,11 @@ public partial class FormSelectProcess : Form
     public FormSelectProcess()
     {
         InitializeComponent();
-        _isSelfElevated = ProcessPrivilegeChecker.IsCurrentProcessElevated();
+        isSelfElevated = ProcessPrivilegeChecker.IsCurrentProcessElevated();
         SetupAdminHint();
     }
 
-    private void SetupAdminHint()
+    void SetupAdminHint()
     {
         if(this.pictureBoxAdminHint == null || this.toolTipAdminHint == null)
         {
@@ -38,7 +38,7 @@ public partial class FormSelectProcess : Form
             return;
         }
         this.pictureBoxAdminHint.Visible = true;
-        if(_isSelfElevated)
+        if(isSelfElevated)
         {
             this.pictureBoxAdminHint.Image = SystemIcons.Information.ToBitmap();
             this.toolTipAdminHint.ToolTipIcon = ToolTipIcon.Info;
@@ -64,7 +64,7 @@ public partial class FormSelectProcess : Form
     void FormSelectProcess_Load(object sender, EventArgs e) => LoadWindowsToList();
     void buttonRefresh_Click(object sender, EventArgs e) => LoadWindowsToList();
     void listViewProcesses_SelectedIndexChanged(object sender, EventArgs e) => buttonSelect.Enabled = listViewProcesses.SelectedItems.Count > 0;
-    private void LoadWindowsToList()
+    void LoadWindowsToList()
     {
         listViewProcesses.Items.Clear();
         List<WindowSelectionInfo> windows = new List<WindowSelectionInfo>();
@@ -85,13 +85,11 @@ public partial class FormSelectProcess : Form
 
             try
             {
-                using(Process process = Process.GetProcessById((int)pid))
+                using Process process = Process.GetProcessById((int)pid);
+                procName = process.ProcessName;
+                if(!process.HasExited)
                 {
-                    procName = process.ProcessName;
-                    if(!process.HasExited)
-                    {
-                        isElevated = ProcessPrivilegeChecker.IsProcessElevated(process.Id, out accessDeniedChecking);
-                    }
+                    isElevated = ProcessPrivilegeChecker.IsProcessElevated(process.Id, out accessDeniedChecking);
                 }
             }
             catch(ArgumentException) { return true; }
@@ -132,13 +130,13 @@ public partial class FormSelectProcess : Form
             if(winInfo.IsElevated)
             {
                 item.ForeColor = Color.DarkGoldenrod;
-                if(!_isSelfElevated)
+                if(!isSelfElevated)
                 {
                     item.ToolTipText += (string.IsNullOrEmpty(item.ToolTipText) ? "" : "\n") +
                                         "This process is elevated. WPM may have limited interaction if not run as admin.";
                 }
             }
-            else if(adminStatusText == "N/A" && !_isSelfElevated)
+            else if(adminStatusText == "N/A" && !isSelfElevated)
             {
                 item.ForeColor = Color.OrangeRed;
                 item.ToolTipText += (string.IsNullOrEmpty(item.ToolTipText) ? "" : "\n") +

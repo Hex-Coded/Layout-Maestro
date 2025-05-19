@@ -5,10 +5,7 @@ namespace WindowPlacementManager.Services;
 
 public class SettingsManager
 {
-    static readonly string SettingsFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "WindowPlacementManager",
-        "settings.json");
+    static readonly string SettingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WindowPlacementManager", "settings.json");
 
     public AppSettingsData LoadSettings()
     {

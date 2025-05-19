@@ -2,17 +2,17 @@
 {
     partial class FormSelectProcess
     {
-        private System.ComponentModel.IContainer components = null;
-        private System.Windows.Forms.ListView listViewProcesses;
-        private System.Windows.Forms.Button buttonSelect;
-        private System.Windows.Forms.Button buttonCancel;
-        private System.Windows.Forms.ColumnHeader columnHeaderProcessName;
-        private System.Windows.Forms.ColumnHeader columnHeaderPID;
-        private System.Windows.Forms.ColumnHeader columnHeaderWindowTitle;
-        private System.Windows.Forms.ColumnHeader columnHeaderAdminStatus;
-        private System.Windows.Forms.Button buttonRefresh;
-        private System.Windows.Forms.PictureBox pictureBoxAdminHint;
-        private System.Windows.Forms.ToolTip toolTipAdminHint;
+     System.ComponentModel.IContainer components = null;
+     System.Windows.Forms.ListView listViewProcesses;
+     System.Windows.Forms.Button buttonSelect;
+     System.Windows.Forms.Button buttonCancel;
+     System.Windows.Forms.ColumnHeader columnHeaderProcessName;
+     System.Windows.Forms.ColumnHeader columnHeaderPID;
+     System.Windows.Forms.ColumnHeader columnHeaderWindowTitle;
+     System.Windows.Forms.ColumnHeader columnHeaderAdminStatus;
+     System.Windows.Forms.Button buttonRefresh;
+     System.Windows.Forms.PictureBox pictureBoxAdminHint;
+     System.Windows.Forms.ToolTip toolTipAdminHint;
 
         protected override void Dispose(bool disposing)
         {
@@ -23,7 +23,7 @@
             base.Dispose(disposing);
         }
 
-        private void InitializeComponent()
+     void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
             listViewProcesses = new ListView();

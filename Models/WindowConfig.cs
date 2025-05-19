@@ -5,31 +5,31 @@ namespace WindowPlacementManager.Models;
 
 public class WindowConfig : INotifyPropertyChanged
 {
-    bool _isEnabled = true;
-    string _processName = string.Empty;
-    string _executablePath = string.Empty;
-    string _windowTitleHint = string.Empty;
-    bool _controlPosition = true;
-    int _targetX;
-    int _targetY;
-    bool _controlSize = true;
-    int _targetWidth;
-    int _targetHeight;
-    bool _launchAsAdmin = false;
-    bool _autoRelaunchEnabled = false;
+    bool isEnabled = true;
+    string processName = string.Empty;
+    string executablePath = string.Empty;
+    string windowTitleHint = string.Empty;
+    bool controlPosition = true;
+    int targetX;
+    int targetY;
+    bool controlSize = true;
+    int targetWidth;
+    int targetHeight;
+    bool launchAsAdmin = false;
+    bool autoRelaunchEnabled = false;
 
-    public bool LaunchAsAdmin { get => _launchAsAdmin; set => SetField(ref _launchAsAdmin, value); }
-    public bool IsEnabled { get => _isEnabled; set => SetField(ref _isEnabled, value); }
-    public string ProcessName { get => _processName; set => SetField(ref _processName, value); }
-    public string ExecutablePath { get => _executablePath; set => SetField(ref _executablePath, value); }
-    public string WindowTitleHint { get => _windowTitleHint; set => SetField(ref _windowTitleHint, value); }
-    public bool ControlPosition { get => _controlPosition; set => SetField(ref _controlPosition, value); }
-    public int TargetX { get => _targetX; set => SetField(ref _targetX, value); }
-    public int TargetY { get => _targetY; set => SetField(ref _targetY, value); }
-    public bool ControlSize { get => _controlSize; set => SetField(ref _controlSize, value); }
-    public int TargetWidth { get => _targetWidth; set => SetField(ref _targetWidth, value); }
-    public int TargetHeight { get => _targetHeight; set => SetField(ref _targetHeight, value); }
-    public bool AutoRelaunchEnabled { get => _autoRelaunchEnabled; set => SetField(ref _autoRelaunchEnabled, value); }
+    public bool LaunchAsAdmin { get => launchAsAdmin; set => SetField(ref launchAsAdmin, value); }
+    public bool IsEnabled { get => isEnabled; set => SetField(ref isEnabled, value); }
+    public string ProcessName { get => processName; set => SetField(ref processName, value); }
+    public string ExecutablePath { get => executablePath; set => SetField(ref executablePath, value); }
+    public string WindowTitleHint { get => windowTitleHint; set => SetField(ref windowTitleHint, value); }
+    public bool ControlPosition { get => controlPosition; set => SetField(ref controlPosition, value); }
+    public int TargetX { get => targetX; set => SetField(ref targetX, value); }
+    public int TargetY { get => targetY; set => SetField(ref targetY, value); }
+    public bool ControlSize { get => controlSize; set => SetField(ref controlSize, value); }
+    public int TargetWidth { get => targetWidth; set => SetField(ref targetWidth, value); }
+    public int TargetHeight { get => targetHeight; set => SetField(ref targetHeight, value); }
+    public bool AutoRelaunchEnabled { get => autoRelaunchEnabled; set => SetField(ref autoRelaunchEnabled, value); }
 
     public WindowConfig() { }
 
