@@ -1,4 +1,3 @@
-using System.Data;
 using System.Diagnostics;
 using WindowPlacementManager.Helpers;
 using WindowPlacementManager.Models;
@@ -40,19 +39,28 @@ public partial class FormMain : Form
     void FormMain_Load(object sender, EventArgs e)
     {
         _isFormLoaded = false;
-        LoadAppSettings();
+
+        LoadAppSettingsAndInitializeMonitorServiceGlobals();
+
         WindowConfigGridUIManager.InitializeDataGridView(dataGridViewWindowConfigs);
         StartupOptionsUIManager.InitializeComboBox(comboBoxStartupOptions);
-        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, _appSettings.ActiveProfileName);
-        HandleActiveProfileChange();
+
+        SetupInitialActiveProfile();
+
         UpdateUIFromSettings();
+
         UpdateAllButtonStates();
+
+        dataGridViewWindowConfigs.CellValueChanged += dataGridViewWindowConfigs_CellValueChanged;
+
+        _windowMonitorService.InitializeTimer();
+
         _isFormLoaded = true;
-        checkBoxDisableProgram.Checked = _appSettings.DisableProgramActivity;
+
         HandleDisableProgramActivityChanged();
     }
 
-    void LoadAppSettings()
+    void LoadAppSettingsAndInitializeMonitorServiceGlobals()
     {
         _appSettings = _settingsManager.LoadSettings();
         if(!_appSettings.Profiles.Any())
@@ -60,18 +68,84 @@ public partial class FormMain : Form
             var defaultProfile = new Profile("Default Profile");
             _appSettings.Profiles.Add(defaultProfile);
             _appSettings.ActiveProfileName = defaultProfile.Name;
+            _settingsManager.SaveSettings(_appSettings);
+            _appSettings = _settingsManager.LoadSettings();
         }
         _windowMonitorService.LoadAndApplySettings();
+    }
+
+    void SetupInitialActiveProfile()
+    {
+        string initialActiveProfileName = _windowMonitorService.GetActiveProfileNameFromSettings();
+        ProfileUIManager.PopulateActiveProfileComboBox(comboBoxActiveProfile, _appSettings.Profiles, initialActiveProfileName);
+
+        _selectedProfileForEditing = comboBoxActiveProfile.SelectedItem as Profile;
+
+        if(_selectedProfileForEditing == null && _appSettings.Profiles.Any())
+        {
+            _selectedProfileForEditing = _appSettings.Profiles.First();
+            comboBoxActiveProfile.SelectedItem = _selectedProfileForEditing;
+        }
+
+        _appSettings.ActiveProfileName = _selectedProfileForEditing?.Name ?? string.Empty;
+
+        LoadWindowConfigsForCurrentProfile();
+
+        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+        Debug.WriteLine($"FormMain_Load: Initial active profile '{_selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
+    }
+
+
+    void HandleActiveProfileChange()
+    {
+        if(!_isFormLoaded) return;
+
+        Profile selected = comboBoxActiveProfile.SelectedItem as Profile;
+        if(_selectedProfileForEditing == selected && selected != null)
+        {
+        }
+
+        _selectedProfileForEditing = selected;
+        _appSettings.ActiveProfileName = selected?.Name ?? string.Empty;
+
+        LoadWindowConfigsForCurrentProfile();
+
+        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+        Debug.WriteLine($"HandleActiveProfileChange: Profile '{_selectedProfileForEditing?.Name ?? "null"}' passed to WindowMonitorService.");
+        UpdateAllButtonStates();
+    }
+
+    void dataGridViewWindowConfigs_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+    {
+        if(!_isFormLoaded || e.RowIndex < 0 || _selectedProfileForEditing == null) return;
+
+        DataGridViewColumn changedColumn = dataGridViewWindowConfigs.Columns[e.ColumnIndex];
+        WindowConfig changedConfig = dataGridViewWindowConfigs.Rows[e.RowIndex].DataBoundItem as WindowConfig;
+
+        if(changedConfig == null) return;
+
+        if(changedColumn.DataPropertyName == nameof(WindowConfig.AutoRelaunchEnabled) ||
+            changedColumn.DataPropertyName == nameof(WindowConfig.IsEnabled) ||
+            changedColumn.DataPropertyName == nameof(WindowConfig.ProcessName) ||
+            changedColumn.DataPropertyName == nameof(WindowConfig.ExecutablePath) ||
+            changedColumn.DataPropertyName == nameof(WindowConfig.WindowTitleHint))
+        {
+            Debug.WriteLine($"DGV CellValueChanged: {changedColumn.DataPropertyName} for '{changedConfig.ProcessName}'. Notifying monitor service.");
+            _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+        }
     }
 
     void SaveAppSettings()
     {
         if(!_isFormLoaded) return;
 
-        if(comboBoxActiveProfile.SelectedItem is Profile selectedActiveProfile)
-            _appSettings.ActiveProfileName = selectedActiveProfile.Name;
+        if(comboBoxActiveProfile.SelectedItem is Profile selectedActiveCbProfile)
+            _appSettings.ActiveProfileName = selectedActiveCbProfile.Name;
+        else if(_appSettings.Profiles.Any())
+            _appSettings.ActiveProfileName = _appSettings.Profiles.First().Name;
         else
-            _appSettings.ActiveProfileName = _appSettings.Profiles.FirstOrDefault()?.Name ?? string.Empty;
+            _appSettings.ActiveProfileName = string.Empty;
+
 
         StartupType newlySelectedStartupOption = StartupOptionsUIManager.GetSelectedStartupType(comboBoxStartupOptions);
         StartupType currentSystemStartupOption = _startupManager.GetCurrentStartupType();
@@ -85,24 +159,29 @@ public partial class FormMain : Form
         else
         {
             _appSettings.StartupOption = newlySelectedStartupOption;
-            Debug.WriteLine($"Startup option ({newlySelectedStartupOption}) unchanged from current system state. No system startup modification needed.");
+            Debug.WriteLine($"Startup option ({newlySelectedStartupOption}) unchanged from current system state.");
         }
-
 
         _appSettings.DisableProgramActivity = checkBoxDisableProgram.Checked;
 
         _settingsManager.SaveSettings(_appSettings);
         _windowMonitorService.LoadAndApplySettings();
-        if(_selectedProfileForEditing != null)
-            _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
-        else
-            _windowMonitorService.UpdateActiveProfileReference(null);
+
+        _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+        Debug.WriteLine($"SaveAppSettings: Profile '{_selectedProfileForEditing?.Name ?? "null"}' re-passed to WindowMonitorService after save.");
+
+        MessageBox.Show("Settings saved.", "Window Positioner", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    void LoadWindowConfigsForCurrentProfile()
+    void HandleDisableProgramActivityChanged()
     {
-        WindowConfigGridUIManager.LoadWindowConfigsForProfile(dataGridViewWindowConfigs, groupBoxWindowConfigs, _selectedProfileForEditing);
-        UpdateAllButtonStates();
+        if(!_isFormLoaded && !checkBoxDisableProgram.IsHandleCreated) return;
+
+        bool isDisabled = checkBoxDisableProgram.Checked;
+
+        _windowMonitorService.SetPositioningActive(!isDisabled);
+
+        GeneralUIManager.UpdateProgramActivityUI(checkBoxDisableProgram, groupBoxWindowConfigs, groupBoxProfiles, isDisabled);
     }
 
     void UpdateUIFromSettings()
@@ -111,14 +190,18 @@ public partial class FormMain : Form
         checkBoxDisableProgram.Checked = _appSettings.DisableProgramActivity;
     }
 
-    void HandleActiveProfileChange()
+    void LoadWindowConfigsForCurrentProfile() => WindowConfigGridUIManager.LoadWindowConfigsForProfile(dataGridViewWindowConfigs, groupBoxWindowConfigs, _selectedProfileForEditing);
+
+    void LoadAppSettings()
     {
-        Profile selected = comboBoxActiveProfile.SelectedItem as Profile;
-        _selectedProfileForEditing = selected;
-        _appSettings.ActiveProfileName = selected?.Name ?? string.Empty;
-        LoadWindowConfigsForCurrentProfile();
-        if(_isFormLoaded) _windowMonitorService.LoadAndApplySettings();
-        UpdateAllButtonStates();
+        _appSettings = _settingsManager.LoadSettings();
+        if(!_appSettings.Profiles.Any())
+        {
+            var defaultProfile = new Profile("Default Profile");
+            _appSettings.Profiles.Add(defaultProfile);
+            _appSettings.ActiveProfileName = defaultProfile.Name;
+        }
+        _windowMonitorService.LoadAndApplySettings();
     }
 
     IntPtr FindWindowForConfig(WindowConfig config) => (config == null) ? IntPtr.Zero : (WindowEnumerationService.FindMostSuitableWindow(config)?.HWnd ?? IntPtr.Zero);
@@ -325,18 +408,9 @@ public partial class FormMain : Form
         else MessageBox.Show($"Could not get window {propName}.", "Fetch Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
     }
 
-    void buttonSaveChanges_Click(object sender, EventArgs e) { SaveAppSettings(); MessageBox.Show("Settings saved.", "Window Positioner", MessageBoxButtons.OK, MessageBoxIcon.Information); }
+    void buttonSaveChanges_Click(object sender, EventArgs e) => SaveAppSettings();
     void linkLabelGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) { try { this.linkLabelGitHub.LinkVisited = true; Process.Start(new ProcessStartInfo("https://github.com/BitSwapper") { UseShellExecute = true }); } catch(Exception ex) { MessageBox.Show($"Could not open link: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); } }
-
     void checkBoxDisableProgram_CheckedChanged(object sender, EventArgs e) => HandleDisableProgramActivityChanged();
-    void HandleDisableProgramActivityChanged()
-    {
-        if(!_isFormLoaded) return;
-        bool isDisabled = checkBoxDisableProgram.Checked;
-        _appSettings.DisableProgramActivity = isDisabled;
-        _windowMonitorService.SetPositioningActive(!isDisabled);
-        GeneralUIManager.UpdateProgramActivityUI(checkBoxDisableProgram, groupBoxWindowConfigs, groupBoxProfiles, isDisabled);
-    }
 
     void buttonActivateLaunchApp_Click(object sender, EventArgs e)
     {

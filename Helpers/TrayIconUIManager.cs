@@ -4,6 +4,8 @@ namespace WindowPlacementManager.Helpers;
 
 public static class TrayIconUIManager
 {
+    const int WM_SYSCOMMAND = 0x0112;
+    const int SC_MINIMIZE = 0xF020;
     public static void InitializeNotifyIcon(NotifyIcon notifyIcon)
     {
         if(notifyIcon.Icon == null)
@@ -34,7 +36,7 @@ public static class TrayIconUIManager
 
     public static bool HandleMinimizeToTray(ref Message m, Action hideAction)
     {
-        if(m.Msg == 0x0112 && m.WParam.ToInt32() == 0xF020) // WM_SYSCOMMAND, SC_MINIMIZE
+        if(m.Msg == WM_SYSCOMMAND && m.WParam.ToInt32() == SC_MINIMIZE)
         {
             hideAction?.Invoke();
             return true;
