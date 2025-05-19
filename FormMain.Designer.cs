@@ -456,6 +456,22 @@
             tabPageSettings.ResumeLayout(false);
             tabPageSettings.PerformLayout();
             ResumeLayout(false);
+
+
+
+
+
+            this.notifyIconMain.ContextMenuStrip = this.contextMenuStripTray;
+
+            if(this.notifyIconMain.Icon == null)
+            {
+                // Attempt to use a system icon if available and no custom icon set
+                try { this.notifyIconMain.Icon = System.Drawing.SystemIcons.Application; }
+                catch { }
+            }
+            this.notifyIconMain.Text = "Window Placement Manager";
+            this.notifyIconMain.Visible = true;
+            this.notifyIconMain.DoubleClick += new System.EventHandler(this.notifyIconMain_DoubleClick);
         }
     }
 }

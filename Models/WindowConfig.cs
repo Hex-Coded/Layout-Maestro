@@ -15,7 +15,9 @@ public class WindowConfig : INotifyPropertyChanged
     bool _controlSize = true;
     int _targetWidth;
     int _targetHeight;
+    bool _launchAsAdmin = false;
 
+    public bool LaunchAsAdmin { get => _launchAsAdmin; set => SetField(ref _launchAsAdmin, value); }
     public bool IsEnabled { get => _isEnabled; set => SetField(ref _isEnabled, value); }
     public string ProcessName { get => _processName; set => SetField(ref _processName, value); }
     public string ExecutablePath { get => _executablePath; set => SetField(ref _executablePath, value); }
