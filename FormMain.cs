@@ -29,24 +29,41 @@ public partial class FormMain : Form
         TrayIconUIManager.InitializeNotifyIcon(this.notifyIconMain);
     }
 
-    void FormMain_FormClosed(object sender, FormClosedEventArgs e)
-    {
-        WindowActionService.AppLaunchedForPositioning -= windowMonitorService.NotifyAppLaunched;
-    }
+    void FormMain_FormClosed(object sender, FormClosedEventArgs e) => WindowActionService.AppLaunchedForPositioning -= windowMonitorService.NotifyAppLaunched;
 
 
     async void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
     {
-        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if(selectedProfileForEditing == null)
+        {
+            MessageBox.Show("Please select a profile to launch apps from.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
 
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
+        {
+            MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configurations to launch.", "No Enabled Configurations", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        Debug.WriteLine($"FormMain: 'Launch All Missing' button clicked for profile '{selectedProfileForEditing.Name}'.");
         buttonLaunchAllProfileApps.Enabled = false;
+
         try
         {
-            await windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing,
+            await windowActionService.ProcessAllAppsInProfile(
+                profile: selectedProfileForEditing,
                 launchIfNotRunning: true,
                 bringToForegroundIfRunning: false,
-                closeIfRunning: false);
+                closeIfRunning: false,
+                supressErrorDialogsForBatch: true
+            );
+            Debug.WriteLine($"FormMain: 'Launch All Missing' operation completed for profile '{selectedProfileForEditing.Name}'.");
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"FormMain: Error during 'Launch All Missing' operation for profile '{selectedProfileForEditing.Name}': {ex.Message}");
+            MessageBox.Show($"An unexpected error occurred while trying to launch missing applications:\n{ex.Message}", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
@@ -54,6 +71,10 @@ public partial class FormMain : Form
             ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
+
+
+
+
 
     async void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
     {
@@ -351,15 +372,65 @@ public partial class FormMain : Form
         MessageBox.Show(success ? $"Close attempt for '{appIdentifier}' initiated." : $"Failed to close '{appIdentifier}'.", success ? "Close Attempted" : "Close Failed", MessageBoxButtons.OK, success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
     }
 
-    void buttonCloseAllProfileApps_Click(object sender, EventArgs e)
-    {
-        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        DialogResult dr = MessageBox.Show($"Close all apps in profile '{selectedProfileForEditing.Name}'?\nForce kill if graceful close fails?", "Confirm Close All", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
-        if(dr == DialogResult.Cancel) return;
-        windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing, false, false, true, dr == DialogResult.Yes, 1500);
-    }
 
+    async void buttonCloseAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(selectedProfileForEditing == null)
+        {
+            MessageBox.Show("Please select a profile to close apps from.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
+        {
+            MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configurations to close.", "No Enabled Configurations", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        DialogResult dr = MessageBox.Show(
+        $"Are you sure you want to attempt to close all enabled applications in the profile '{selectedProfileForEditing.Name}'?\n\nChoose 'Yes' to force kill if graceful close fails/times out.\nChoose 'No' for graceful close attempt only.",
+        "Confirm Close All Profile Apps",
+        MessageBoxButtons.YesNoCancel,
+        MessageBoxIcon.Warning,
+        MessageBoxDefaultButton.Button2
+    );
+
+        if(dr == DialogResult.Cancel)
+        {
+            Debug.WriteLine("FormMain: 'Close All Profile Apps' action cancelled by user.");
+            return;
+        }
+
+        bool forceKill = (dr == DialogResult.Yes);
+        Debug.WriteLine($"FormMain: 'Close All Profile Apps' button clicked for profile '{selectedProfileForEditing.Name}'. Force kill: {forceKill}");
+
+        buttonCloseAllProfileApps.Enabled = false;
+
+        try
+        {
+            await windowActionService.ProcessAllAppsInProfile(
+                profile: selectedProfileForEditing,
+                launchIfNotRunning: false,
+                bringToForegroundIfRunning: false,
+                closeIfRunning: true,
+                forceKillIfNotClosed: forceKill,
+                closeGracePeriodMs: 1500,
+                supressErrorDialogsForBatch: true
+            );
+            Debug.WriteLine($"FormMain: 'Close All Profile Apps' operation completed for profile '{selectedProfileForEditing.Name}'.");
+            MessageBox.Show($"Attempted to close all enabled applications in profile '{selectedProfileForEditing.Name}'. Check debug logs for details.", "Operation Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"FormMain: Error during 'Close All Profile Apps' operation for profile '{selectedProfileForEditing.Name}': {ex.Message}");
+            MessageBox.Show($"An unexpected error occurred while trying to close applications:\n{ex.Message}", "Close Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            buttonCloseAllProfileApps.Enabled = true;
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+        }
+    }
     void buttonTestSelectedProfile_Click(object sender, EventArgs e)
     {
         if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile to test.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }

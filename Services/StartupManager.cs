@@ -18,25 +18,17 @@ public class StartupManager
 
     public StartupType GetCurrentStartupType() => IsScheduledTaskForAdminStartupSet() ? StartupType.Admin : (RkAppRun.GetValue(AppName) != null ? StartupType.Normal : StartupType.None);
 
-    public void SetStartup(StartupType startupType)
+    public void SetStartup(StartupType desiredStartupType)
     {
-        StartupType currentSystemType = GetCurrentStartupType();
-        if(currentSystemType == startupType) return;
-
-        if(currentSystemType == StartupType.Normal && startupType != StartupType.Normal)
-            ClearNormalStartup();
-        if(currentSystemType == StartupType.Admin && startupType != StartupType.Admin)
-            ClearAdminStartupTask();
-
-        switch(startupType)
+        switch(desiredStartupType)
         {
-            case StartupType.None:
-                break;
             case StartupType.Normal:
-                if(currentSystemType != StartupType.Normal) SetNormalStartup();
+                SetNormalStartup();
                 break;
             case StartupType.Admin:
-                if(currentSystemType != StartupType.Admin) SetAdminStartupTask();
+                SetAdminStartupTask();
+                break;
+            case StartupType.None:
                 break;
         }
     }
@@ -45,12 +37,6 @@ public class StartupManager
     {
         try { RkAppRun.SetValue(AppName, Application.ExecutablePath); }
         catch(Exception ex) { Debug.WriteLine($"Error setting normal startup: {ex.Message}"); }
-    }
-
-    void ClearNormalStartup()
-    {
-        try { if(RkAppRun.GetValue(AppName) != null) RkAppRun.DeleteValue(AppName, false); }
-        catch(Exception ex) { Debug.WriteLine($"Error clearing normal startup: {ex.Message}"); }
     }
 
     bool IsScheduledTaskForAdminStartupSet()
@@ -127,28 +113,6 @@ public class StartupManager
             Debug.WriteLine($"Error setting admin startup task (outer handler): {ex.Message}");
             MessageBox.Show($"An error occurred while trying to set 'Boot with Windows as Admin':\n{ex.Message}",
                             "Admin Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    void ClearAdminStartupTask()
-    {
-        if(!IsScheduledTaskForAdminStartupSet()) return;
-
-        try
-        {
-            string arguments = $"/Delete /TN \"{ScheduledTaskName}\" /F";
-            var (success, uacCancelled) = ExecuteAdminSchTasksOperation(arguments);
-
-            if(success) return;
-
-            if(uacCancelled)
-                Debug.WriteLine("Admin startup task deletion was cancelled by UAC.");
-            else
-                Debug.WriteLine($"Failed to clear admin startup task (schtasks non-zero exit or other Process.Start error).");
-        }
-        catch(Exception ex)
-        {
-            Debug.WriteLine($"Error clearing admin startup task (outer handler): {ex.Message}");
         }
     }
 }

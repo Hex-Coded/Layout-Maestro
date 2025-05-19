@@ -6,56 +6,6 @@ namespace WindowPlacementManager.Services;
 
 public static class ProcessPrivilegeChecker
 {
-    const uint TOKEN_QUERY = 0x0008;
-    const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
-    const int ERROR_ACCESS_DENIED = 5;
-
-    [DllImport("advapi32.dll", SetLastError = true)]
-    static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
-
-    [DllImport("advapi32.dll", SetLastError = true)]
-    static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool CloseHandle(IntPtr hObject);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
-
-    enum TOKEN_INFORMATION_CLASS
-    {
-        TokenUser = 1,
-        TokenGroups,
-        TokenPrivileges,
-        TokenOwner,
-        TokenPrimaryGroup,
-        TokenDefaultDacl,
-        TokenSource,
-        TokenType,
-        TokenImpersonationLevel,
-        TokenStatistics,
-        TokenRestrictedSids,
-        TokenSessionId,
-        TokenGroupsAndPrivileges,
-        TokenSessionReference,
-        TokenSandBoxInert,
-        TokenAuditPolicy,
-        TokenOrigin,
-        TokenElevationType,
-        TokenLinkedToken,
-        TokenElevation,
-        TokenHasRestrictions,
-        TokenAccessInformation,
-        TokenVirtualizationAllowed,
-        TokenVirtualizationEnabled,
-        TokenIntegrityLevel,
-        TokenUIAccess,
-        TokenMandatoryPolicy,
-        TokenLogonSid,
-        MaxTokenInfoClass
-    }
-
     struct TOKEN_ELEVATION
     {
         public uint TokenIsElevated;
@@ -142,4 +92,54 @@ public static class ProcessPrivilegeChecker
             if(processHandle != IntPtr.Zero) CloseHandle(processHandle);
         }
     }
+
+    enum TOKEN_INFORMATION_CLASS
+    {
+        TokenUser = 1,
+        TokenGroups,
+        TokenPrivileges,
+        TokenOwner,
+        TokenPrimaryGroup,
+        TokenDefaultDacl,
+        TokenSource,
+        TokenType,
+        TokenImpersonationLevel,
+        TokenStatistics,
+        TokenRestrictedSids,
+        TokenSessionId,
+        TokenGroupsAndPrivileges,
+        TokenSessionReference,
+        TokenSandBoxInert,
+        TokenAuditPolicy,
+        TokenOrigin,
+        TokenElevationType,
+        TokenLinkedToken,
+        TokenElevation,
+        TokenHasRestrictions,
+        TokenAccessInformation,
+        TokenVirtualizationAllowed,
+        TokenVirtualizationEnabled,
+        TokenIntegrityLevel,
+        TokenUIAccess,
+        TokenMandatoryPolicy,
+        TokenLogonSid,
+        MaxTokenInfoClass
+    }
+
+    const uint TOKEN_QUERY = 0x0008;
+    const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+    const int ERROR_ACCESS_DENIED = 5;
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    static extern bool OpenProcessToken(IntPtr ProcessHandle, uint DesiredAccess, out IntPtr TokenHandle);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool CloseHandle(IntPtr hObject);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
 }

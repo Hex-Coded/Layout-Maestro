@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 
+namespace WindowPlacementManager.Models;
+
 public class SortableBindingList<T> : BindingList<T>
 {
     bool isSorted;
