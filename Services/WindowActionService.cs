@@ -34,25 +34,115 @@ public class WindowActionService
         MessageBox.Show($"Failed to launch '{pathToLaunch}'.\nError: {ex.Message}", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return false;
     }
-
-    public bool LaunchApp(WindowConfig config)
+    public bool LaunchApp(WindowConfig config, bool supressErrorDialogs = false)
     {
         string pathToLaunch = GetLaunchPath(config);
         if(string.IsNullOrWhiteSpace(pathToLaunch))
         {
             Debug.WriteLine($"Cannot launch '{config.ProcessName}': No ExecutablePath/ProcessName.");
-            MessageBox.Show($"Cannot launch application for '{config.ProcessName}'.\nNo executable path or process name is configured.", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if(!supressErrorDialogs)
+                MessageBox.Show($"Cannot launch application for '{config.ProcessName}'.\nNo executable path or process name is configured.", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
 
         try
         {
             ProcessStartInfo startInfo = CreateProcessStartInfo(pathToLaunch, config.LaunchAsAdmin);
-            Process.Start(startInfo);
-            Debug.WriteLine($"Launched '{pathToLaunch}' (Admin: {config.LaunchAsAdmin}).");
+            Process p = Process.Start(startInfo);
+            Debug.WriteLine($"Launched '{pathToLaunch}' (Admin: {config.LaunchAsAdmin}). PID: {p?.Id}");
+            p?.Dispose();
             return true;
         }
-        catch(Exception ex) { return HandleLaunchException(ex, pathToLaunch, config.LaunchAsAdmin); }
+        catch(System.ComponentModel.Win32Exception ex) when(ex.NativeErrorCode == 1223 && config.LaunchAsAdmin)
+        {
+            Debug.WriteLine($"Launch of '{pathToLaunch}' as Admin cancelled by user (UAC).");
+            if(!supressErrorDialogs)
+                MessageBox.Show($"Launching '{pathToLaunch}' as Administrator was cancelled.", "Launch Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return false;
+        }
+        catch(Exception ex)
+        {
+            return HandleLaunchException(ex, pathToLaunch, config.LaunchAsAdmin, supressErrorDialogs);
+        }
+    }
+
+    bool HandleLaunchException(Exception ex, string pathToLaunch, bool wasAdminLaunchAttempt, bool supressErrorDialogs = false)
+    {
+        if(ex is System.ComponentModel.Win32Exception win32Ex)
+        {
+            if(win32Ex.NativeErrorCode == 1223 && wasAdminLaunchAttempt)
+            {
+                if(!supressErrorDialogs) MessageBox.Show($"Launching '{pathToLaunch}' as Administrator was cancelled.", "Launch Cancelled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+            if(win32Ex.NativeErrorCode == 740 && !wasAdminLaunchAttempt)
+            {
+                if(!supressErrorDialogs) MessageBox.Show($"Failed to launch '{pathToLaunch}'.\nThe application requires administrator privileges to start, but 'Launch as Admin' was not checked for this configuration.", "Launch Error - Elevation Required", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+        if(!supressErrorDialogs) MessageBox.Show($"Failed to launch '{pathToLaunch}'.\nError: {ex.Message}", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        else Debug.WriteLine($"Failed to launch '{pathToLaunch}' (dialogs suppressed). Error: {ex.Message}");
+        return false;
+    }
+
+
+    public async Task ProcessAllAppsInProfile(Profile profile, bool launchIfNotRunning, bool bringToForegroundIfRunning, bool closeIfRunning, bool forceKillIfNotClosed = false, int closeGracePeriodMs = 2000, int delayBetweenLaunchesMs = 1000)
+    {
+        if(profile == null) { Debug.WriteLine("ProcessAllAppsInProfile: Profile is null."); return; }
+        if(!profile.WindowConfigs.Any(c => c.IsEnabled)) { Debug.WriteLine($"ProcessAllAppsInProfile: Profile '{profile.Name}' has no enabled configs."); return; }
+
+        Debug.WriteLine($"Processing profile '{profile.Name}': Launch={launchIfNotRunning}, Focus={bringToForegroundIfRunning}, Close={closeIfRunning}");
+
+        List<WindowConfig> configsToProcess = profile.WindowConfigs.Where(c => c.IsEnabled).ToList();
+
+        foreach(var config in configsToProcess)
+        {
+            Debug.WriteLine($"ProcessAllAppsInProfile: Processing config for '{config.ProcessName}'");
+            var windowInfo = FindManagedWindow(config);
+            Process process = windowInfo?.GetProcess();
+
+            try
+            {
+                if(process != null && !process.HasExited)
+                {
+                    if(closeIfRunning)
+                    {
+                        Debug.WriteLine($"ProcessAllAppsInProfile: Closing running app: '{config.ProcessName}'");
+                        if(!CloseApp(config, forceKillIfNotClosed, closeGracePeriodMs))
+                            Debug.WriteLine($"ProcessAllAppsInProfile: Failed to close '{config.ProcessName}'.");
+                        if(delayBetweenLaunchesMs > 0) await Task.Delay(delayBetweenLaunchesMs / 2);
+                    }
+                    else if(bringToForegroundIfRunning)
+                    {
+                        Debug.WriteLine($"ProcessAllAppsInProfile: Focusing running app: '{config.ProcessName}' (hWnd:{windowInfo.HWnd})");
+                        if(!BringWindowToForeground(windowInfo.HWnd))
+                            Debug.WriteLine($"ProcessAllAppsInProfile: Failed to focus '{config.ProcessName}'.");
+                    }
+                    else
+                        Debug.WriteLine($"ProcessAllAppsInProfile: App '{config.ProcessName}' (PID: {process.Id}) is running. No launch/focus/close specified.");
+                }
+                else
+                {
+                    if(launchIfNotRunning)
+                    {
+                        Debug.WriteLine($"ProcessAllAppsInProfile: Launching missing app: '{config.ProcessName}'");
+                        if(!LaunchApp(config, supressErrorDialogs: false))
+                            Debug.WriteLine($"ProcessAllAppsInProfile: Failed to launch '{config.ProcessName}'.");
+                        else
+                        if(delayBetweenLaunchesMs > 0)
+                        {
+                            Debug.WriteLine($"ProcessAllAppsInProfile: Delaying {delayBetweenLaunchesMs}ms after launching '{config.ProcessName}'.");
+                            await Task.Delay(delayBetweenLaunchesMs);
+                        }
+                    }
+                    else
+                        Debug.WriteLine($"ProcessAllAppsInProfile: App '{config.ProcessName}' is not running. No launch action specified.");
+                }
+            }
+            finally { process?.Dispose(); }
+        }
+        Debug.WriteLine($"Finished processing profile '{profile.Name}'.");
     }
 
     public bool BringWindowToForeground(IntPtr hWnd)

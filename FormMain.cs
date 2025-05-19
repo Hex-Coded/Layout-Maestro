@@ -27,6 +27,47 @@ public partial class FormMain : Form
     }
 
 
+    async void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+
+        buttonLaunchAllProfileApps.Enabled = false;
+        try
+        {
+            await _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+                launchIfNotRunning: true,
+                bringToForegroundIfRunning: false,
+                closeIfRunning: false,
+                delayBetweenLaunchesMs: 200);
+        }
+        finally
+        {
+            buttonLaunchAllProfileApps.Enabled = true;
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
+        }
+    }
+
+    async void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        buttonFocusAllProfileApps.Enabled = false;
+        try
+        {
+            await _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing,
+                launchIfNotRunning: false,
+                bringToForegroundIfRunning: true,
+                closeIfRunning: false,
+                delayBetweenLaunchesMs: 100);
+        }
+        finally
+        {
+            buttonFocusAllProfileApps.Enabled = true;
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
+        }
+    }
+
     void UpdateAllButtonStates()
     {
         ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
@@ -311,20 +352,6 @@ public partial class FormMain : Form
         DialogResult dr = MessageBox.Show($"Close all apps in profile '{_selectedProfileForEditing.Name}'?\nForce kill if graceful close fails?", "Confirm Close All", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
         if(dr == DialogResult.Cancel) return;
         _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing, false, false, true, dr == DialogResult.Yes, 1500);
-    }
-
-    void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
-    {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing, true, false, false);
-    }
-
-    void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
-    {
-        if(_selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
-        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        _windowActionService.ProcessAllAppsInProfile(_selectedProfileForEditing, false, true, false);
     }
 
     void buttonTestSelectedProfile_Click(object sender, EventArgs e)
