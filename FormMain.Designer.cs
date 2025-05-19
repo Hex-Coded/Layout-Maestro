@@ -74,6 +74,7 @@
             buttonAddWindowConfig = new Button();
             buttonRemoveWindowConfig = new Button();
             buttonActivateLaunchApp = new Button();
+            buttonFocus = new Button();
             buttonCloseApp = new Button();
             buttonFetchPosition = new Button();
             buttonFetchSize = new Button();
@@ -191,7 +192,7 @@
             // 
             labelItemActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelItemActions.AutoSize = true;
-            labelItemActions.Location = new Point(6, 393);
+            labelItemActions.Location = new Point(7, 323);
             labelItemActions.Name = "labelItemActions";
             labelItemActions.Size = new Size(124, 15);
             labelItemActions.TabIndex = 3;
@@ -201,7 +202,7 @@
             // 
             labelProfileActions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelProfileActions.AutoSize = true;
-            labelProfileActions.Location = new Point(6, 328);
+            labelProfileActions.Location = new Point(7, 397);
             labelProfileActions.Name = "labelProfileActions";
             labelProfileActions.Size = new Size(87, 15);
             labelProfileActions.TabIndex = 1;
@@ -213,10 +214,11 @@
             flowLayoutPanelItemActions.Controls.Add(buttonAddWindowConfig);
             flowLayoutPanelItemActions.Controls.Add(buttonRemoveWindowConfig);
             flowLayoutPanelItemActions.Controls.Add(buttonActivateLaunchApp);
+            flowLayoutPanelItemActions.Controls.Add(buttonFocus);
             flowLayoutPanelItemActions.Controls.Add(buttonCloseApp);
             flowLayoutPanelItemActions.Controls.Add(buttonFetchPosition);
             flowLayoutPanelItemActions.Controls.Add(buttonFetchSize);
-            flowLayoutPanelItemActions.Location = new Point(6, 411);
+            flowLayoutPanelItemActions.Location = new Point(7, 341);
             flowLayoutPanelItemActions.Name = "flowLayoutPanelItemActions";
             flowLayoutPanelItemActions.Size = new Size(958, 33);
             flowLayoutPanelItemActions.TabIndex = 4;
@@ -225,7 +227,7 @@
             // 
             buttonAddWindowConfig.Location = new Point(3, 3);
             buttonAddWindowConfig.Name = "buttonAddWindowConfig";
-            buttonAddWindowConfig.Size = new Size(85, 25);
+            buttonAddWindowConfig.Size = new Size(80, 25);
             buttonAddWindowConfig.TabIndex = 0;
             buttonAddWindowConfig.Text = "Add";
             toolTipGeneral.SetToolTip(buttonAddWindowConfig, "Add a new window configuration");
@@ -235,9 +237,9 @@
             // buttonRemoveWindowConfig
             // 
             buttonRemoveWindowConfig.Enabled = false;
-            buttonRemoveWindowConfig.Location = new Point(94, 3);
+            buttonRemoveWindowConfig.Location = new Point(89, 3);
             buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
-            buttonRemoveWindowConfig.Size = new Size(85, 25);
+            buttonRemoveWindowConfig.Size = new Size(80, 25);
             buttonRemoveWindowConfig.TabIndex = 1;
             buttonRemoveWindowConfig.Text = "Remove";
             toolTipGeneral.SetToolTip(buttonRemoveWindowConfig, "Remove selected window configuration");
@@ -247,22 +249,34 @@
             // buttonActivateLaunchApp
             // 
             buttonActivateLaunchApp.Enabled = false;
-            buttonActivateLaunchApp.Location = new Point(185, 3);
+            buttonActivateLaunchApp.Location = new Point(175, 3);
             buttonActivateLaunchApp.Name = "buttonActivateLaunchApp";
-            buttonActivateLaunchApp.Size = new Size(100, 25);
+            buttonActivateLaunchApp.Size = new Size(80, 25);
             buttonActivateLaunchApp.TabIndex = 2;
             buttonActivateLaunchApp.Text = "Launch";
             toolTipGeneral.SetToolTip(buttonActivateLaunchApp, "Launch selected app if not running, or activate its window");
             buttonActivateLaunchApp.UseVisualStyleBackColor = true;
             buttonActivateLaunchApp.Click += buttonActivateLaunchApp_Click;
             // 
+            // buttonFocus
+            // 
+            buttonFocus.Enabled = false;
+            buttonFocus.Location = new Point(261, 3);
+            buttonFocus.Name = "buttonFocus";
+            buttonFocus.Size = new Size(80, 25);
+            buttonFocus.TabIndex = 3;
+            buttonFocus.Text = "Focus";
+            toolTipGeneral.SetToolTip(buttonFocus, "Update Width,Height from the live window");
+            buttonFocus.UseVisualStyleBackColor = true;
+            buttonFocus.Click += buttonFocus_Click;
+            // 
             // buttonCloseApp
             // 
             buttonCloseApp.Enabled = false;
-            buttonCloseApp.Location = new Point(291, 3);
+            buttonCloseApp.Location = new Point(347, 3);
             buttonCloseApp.Name = "buttonCloseApp";
-            buttonCloseApp.Size = new Size(85, 25);
-            buttonCloseApp.TabIndex = 3;
+            buttonCloseApp.Size = new Size(80, 25);
+            buttonCloseApp.TabIndex = 4;
             buttonCloseApp.Text = "Close";
             toolTipGeneral.SetToolTip(buttonCloseApp, "Attempt to close the selected application");
             buttonCloseApp.UseVisualStyleBackColor = true;
@@ -271,10 +285,10 @@
             // buttonFetchPosition
             // 
             buttonFetchPosition.Enabled = false;
-            buttonFetchPosition.Location = new Point(382, 3);
+            buttonFetchPosition.Location = new Point(433, 3);
             buttonFetchPosition.Name = "buttonFetchPosition";
-            buttonFetchPosition.Size = new Size(85, 25);
-            buttonFetchPosition.TabIndex = 4;
+            buttonFetchPosition.Size = new Size(80, 25);
+            buttonFetchPosition.TabIndex = 5;
             buttonFetchPosition.Text = "Fetch Pos";
             toolTipGeneral.SetToolTip(buttonFetchPosition, "Update X,Y from the live window");
             buttonFetchPosition.UseVisualStyleBackColor = true;
@@ -283,10 +297,10 @@
             // buttonFetchSize
             // 
             buttonFetchSize.Enabled = false;
-            buttonFetchSize.Location = new Point(473, 3);
+            buttonFetchSize.Location = new Point(519, 3);
             buttonFetchSize.Name = "buttonFetchSize";
             buttonFetchSize.Size = new Size(80, 25);
-            buttonFetchSize.TabIndex = 5;
+            buttonFetchSize.TabIndex = 6;
             buttonFetchSize.Text = "Fetch Size";
             toolTipGeneral.SetToolTip(buttonFetchSize, "Update Width,Height from the live window");
             buttonFetchSize.UseVisualStyleBackColor = true;
@@ -299,7 +313,7 @@
             flowLayoutPanelProfileActions.Controls.Add(buttonFocusAllProfileApps);
             flowLayoutPanelProfileActions.Controls.Add(buttonCloseAllProfileApps);
             flowLayoutPanelProfileActions.Controls.Add(buttonTestSelectedProfile);
-            flowLayoutPanelProfileActions.Location = new Point(6, 346);
+            flowLayoutPanelProfileActions.Location = new Point(7, 415);
             flowLayoutPanelProfileActions.Name = "flowLayoutPanelProfileActions";
             flowLayoutPanelProfileActions.Size = new Size(958, 33);
             flowLayoutPanelProfileActions.TabIndex = 2;
@@ -456,7 +470,7 @@
             tabPageSettings.Location = new Point(4, 24);
             tabPageSettings.Name = "tabPageSettings";
             tabPageSettings.Padding = new Padding(3);
-            tabPageSettings.Size = new Size(976, 493);
+            tabPageSettings.Size = new Size(1176, 493);
             tabPageSettings.TabIndex = 1;
             tabPageSettings.Text = "Application Settings";
             tabPageSettings.UseVisualStyleBackColor = true;
@@ -538,5 +552,6 @@
             tabPageSettings.PerformLayout();
             ResumeLayout(false);
         }
+        private Button buttonFocus;
     }
 }

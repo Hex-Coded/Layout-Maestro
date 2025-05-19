@@ -22,12 +22,26 @@ public class StartupManager
 
     public void SetStartup(StartupType startupType)
     {
-        ClearAllStartupSettings();
+
+
+        StartupType currentSystemType = GetCurrentStartupType();
+        if(currentSystemType == startupType) return;
+
+        if(currentSystemType == StartupType.Normal && startupType != StartupType.Normal)
+            ClearNormalStartup();
+        if(currentSystemType == StartupType.Admin && startupType != StartupType.Admin)
+            ClearAdminStartupTask();
+
         switch(startupType)
         {
-            case StartupType.Normal: SetNormalStartup(); break;
-            case StartupType.Admin: SetAdminStartupTask(); break;
-            case StartupType.None: break;
+            case StartupType.None:
+                break;
+            case StartupType.Normal:
+                if(currentSystemType != StartupType.Normal) SetNormalStartup();
+                break;
+            case StartupType.Admin:
+                if(currentSystemType != StartupType.Admin) SetAdminStartupTask();
+                break;
         }
     }
 

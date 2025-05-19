@@ -31,7 +31,7 @@ public partial class FormMain : Form
     void UpdateAllButtonStates()
     {
         ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, _selectedProfileForEditing);
-        WindowConfigGridUIManager.UpdateSelectionDependentButtons(dataGridViewWindowConfigs, buttonRemoveWindowConfig, buttonActivateLaunchApp, buttonCloseApp, buttonFetchPosition, buttonFetchSize);
+        WindowConfigGridUIManager.UpdateSelectionDependentButtons(dataGridViewWindowConfigs, buttonRemoveWindowConfig, buttonActivateLaunchApp, buttonFocus, buttonCloseApp, buttonFetchPosition, buttonFetchSize);
         ProfileUIManager.UpdateProfileManagementButtons(buttonRemoveProfile, buttonRenameProfile, buttonCloneProfile, buttonAddWindowConfig, _selectedProfileForEditing != null, _appSettings.Profiles.Count);
     }
 
@@ -67,14 +67,36 @@ public partial class FormMain : Form
     void SaveAppSettings()
     {
         if(!_isFormLoaded) return;
-        if(comboBoxActiveProfile.SelectedItem is Profile selectedActiveProfile) _appSettings.ActiveProfileName = selectedActiveProfile.Name;
-        else _appSettings.ActiveProfileName = _appSettings.Profiles.FirstOrDefault()?.Name ?? string.Empty;
 
-        _appSettings.StartupOption = StartupOptionsUIManager.GetSelectedStartupType(comboBoxStartupOptions);
-        _startupManager.SetStartup(_appSettings.StartupOption);
+        if(comboBoxActiveProfile.SelectedItem is Profile selectedActiveProfile)
+            _appSettings.ActiveProfileName = selectedActiveProfile.Name;
+        else
+            _appSettings.ActiveProfileName = _appSettings.Profiles.FirstOrDefault()?.Name ?? string.Empty;
+
+        StartupType newlySelectedStartupOption = StartupOptionsUIManager.GetSelectedStartupType(comboBoxStartupOptions);
+        StartupType currentSystemStartupOption = _startupManager.GetCurrentStartupType();
+
+        if(newlySelectedStartupOption != currentSystemStartupOption)
+        {
+            Debug.WriteLine($"Startup option changed from {currentSystemStartupOption} to {newlySelectedStartupOption}. Applying change.");
+            _startupManager.SetStartup(newlySelectedStartupOption);
+            _appSettings.StartupOption = newlySelectedStartupOption;
+        }
+        else
+        {
+            _appSettings.StartupOption = newlySelectedStartupOption;
+            Debug.WriteLine($"Startup option ({newlySelectedStartupOption}) unchanged from current system state. No system startup modification needed.");
+        }
+
+
         _appSettings.DisableProgramActivity = checkBoxDisableProgram.Checked;
+
         _settingsManager.SaveSettings(_appSettings);
         _windowMonitorService.LoadAndApplySettings();
+        if(_selectedProfileForEditing != null)
+            _windowMonitorService.UpdateActiveProfileReference(_selectedProfileForEditing);
+        else
+            _windowMonitorService.UpdateActiveProfileReference(null);
     }
 
     void LoadWindowConfigsForCurrentProfile()
@@ -333,4 +355,36 @@ public partial class FormMain : Form
     void exitToolStripMenuItem_Click(object sender, EventArgs e) => ForceExitApplication();
     void ForceExitApplication() { _windowMonitorService?.Dispose(); TrayIconUIManager.DisposeNotifyIcon(notifyIconMain); notifyIconMain = null; Environment.Exit(0); }
     void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { }
+
+    private void buttonFocus_Click(object sender, EventArgs e)
+    {
+        var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
+        if(selectedConfig == null)
+        {
+            MessageBox.Show("Please select a window configuration from the list to focus.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if(!selectedConfig.IsEnabled)
+        {
+            MessageBox.Show($"This configuration for '{selectedConfig.ProcessName}' is disabled. No action taken.", "Action Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var windowInfo = _windowActionService.FindManagedWindow(selectedConfig);
+
+        if(windowInfo != null && windowInfo.HWnd != IntPtr.Zero)
+        {
+            Debug.WriteLine($"App '{selectedConfig.ProcessName}' (hWnd:{windowInfo.HWnd}) found. Attempting to focus.");
+            bool success = _windowActionService.BringWindowToForeground(windowInfo.HWnd);
+            if(!success)
+            {
+                MessageBox.Show($"Failed to bring the window for '{selectedConfig.ProcessName}' to the foreground.\nThis can happen if another application is actively preventing focus changes or if the window is minimized in a way that prevents normal activation.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        else
+        {
+            MessageBox.Show($"Application '{selectedConfig.ProcessName}' is not running or its window could not be found based on the current configuration.", "Not Running or Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
 }

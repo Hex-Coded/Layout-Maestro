@@ -36,11 +36,12 @@ public static class WindowConfigGridUIManager
         }
     }
 
-    public static void UpdateSelectionDependentButtons(DataGridView dgv, Button removeButton, Button activateLaunchButton, Button closeAppButton, Button fetchPosButton, Button fetchSizeButton)
+    public static void UpdateSelectionDependentButtons(DataGridView dgv, Button removeButton, Button activateLaunchButton, Button buttonFocus, Button closeAppButton, Button fetchPosButton, Button fetchSizeButton)
     {
         bool rowSelected = dgv.SelectedRows.Count > 0 && dgv.SelectedRows[0].DataBoundItem is WindowConfig;
         removeButton.Enabled = rowSelected;
         activateLaunchButton.Enabled = rowSelected;
+        buttonFocus.Enabled = rowSelected;
         closeAppButton.Enabled = rowSelected;
         fetchPosButton.Enabled = rowSelected;
         fetchSizeButton.Enabled = rowSelected;
