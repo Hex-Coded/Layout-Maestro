@@ -7,6 +7,7 @@ public class WindowConfig : INotifyPropertyChanged
 {
     bool _isEnabled = true;
     string _processName = string.Empty;
+    string _executablePath = string.Empty;
     string _windowTitleHint = string.Empty;
     bool _controlPosition = true;
     int _targetX;
@@ -17,6 +18,7 @@ public class WindowConfig : INotifyPropertyChanged
 
     public bool IsEnabled { get => _isEnabled; set => SetField(ref _isEnabled, value); }
     public string ProcessName { get => _processName; set => SetField(ref _processName, value); }
+    public string ExecutablePath { get => _executablePath; set => SetField(ref _executablePath, value); }
     public string WindowTitleHint { get => _windowTitleHint; set => SetField(ref _windowTitleHint, value); }
     public bool ControlPosition { get => _controlPosition; set => SetField(ref _controlPosition, value); }
     public int TargetX { get => _targetX; set => SetField(ref _targetX, value); }

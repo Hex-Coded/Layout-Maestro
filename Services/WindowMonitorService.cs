@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using WindowPlacementManager;
 using WindowPlacementManager.Models;
 using WindowPlacementManager.Services;
+using WindowPlacementManager;
 
 public class WindowMonitorService : IDisposable
 {
@@ -11,6 +11,7 @@ public class WindowMonitorService : IDisposable
     readonly HashSet<int> _handledProcessIdsThisSession;
     System.Windows.Forms.Timer _timer;
     bool _isProgramActivityDisabled = true;
+
 
     public WindowMonitorService(SettingsManager settingsManager)
     {

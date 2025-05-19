@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.VisualBasic;
 using WindowPlacementManager.Models;
 using WindowPlacementManager.Services;
+using System.Linq;
 
 namespace WindowPlacementManager;
 
@@ -11,10 +12,12 @@ public partial class FormMain : Form
     readonly SettingsManager _settingsManager;
     readonly StartupManager _startupManager;
     readonly WindowMonitorService _windowMonitorService;
+    readonly WindowActionService _windowActionService;
 
     AppSettingsData _appSettings;
     Profile _selectedProfileForEditing;
     bool _isFormLoaded = false;
+
 
     public FormMain()
     {
@@ -23,6 +26,7 @@ public partial class FormMain : Form
         _settingsManager = new SettingsManager();
         _startupManager = new StartupManager();
         _windowMonitorService = new WindowMonitorService(_settingsManager);
+        _windowActionService = new WindowActionService();
     }
 
 
@@ -30,10 +34,10 @@ public partial class FormMain : Form
     {
         if(_selectedProfileForEditing != null)
         {
-            if(!_selectedProfileForEditing.WindowConfigs.Any())
+            if(!_selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled))
             {
-                MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no window configurations defined.",
-                                "No Configurations", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations defined.",
+                                "No Enabled Configurations", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             _windowMonitorService.TestProfileLayout(_selectedProfileForEditing);
@@ -119,16 +123,24 @@ public partial class FormMain : Form
 
         UpdateUIFromSettings();
         dataGridViewWindowConfigs_SelectionChanged(null, null);
-
-        UpdateTestProfileButtonState();
+        UpdateProfileSpecificActionButtonsState();
         UpdateProfileManagementButtonsState();
 
         _isFormLoaded = true;
-        checkBoxDisableProgram.Checked = false;
+        checkBoxDisableProgram.Checked = _appSettings.DisableProgramActivity;
         UpdateDisabledCheckbox();
     }
 
-    void UpdateTestProfileButtonState() => buttonTestSelectedProfile.Enabled = _selectedProfileForEditing != null;
+    void UpdateProfileSpecificActionButtonsState()
+    {
+        bool profileSelectedAndHasConfigs = _selectedProfileForEditing != null &&
+                                            _selectedProfileForEditing.WindowConfigs.Any(wc => wc.IsEnabled);
+
+        buttonTestSelectedProfile.Enabled = profileSelectedAndHasConfigs;
+        if(buttonLaunchAllProfileApps != null) buttonLaunchAllProfileApps.Enabled = profileSelectedAndHasConfigs;
+        if(buttonFocusAllProfileApps != null) buttonFocusAllProfileApps.Enabled = profileSelectedAndHasConfigs;
+    }
+
 
     void UpdateProfileManagementButtonsState()
     {
@@ -195,10 +207,16 @@ public partial class FormMain : Form
         dataGridViewWindowConfigs.Columns.Clear();
         var enabledCol = new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.IsEnabled), HeaderText = "On", Width = 40 };
         dataGridViewWindowConfigs.Columns.Add(enabledCol);
-        var procNameCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ProcessName), HeaderText = "Process Name", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 100 };
+
+        var procNameCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ProcessName), HeaderText = "Process Name", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight=20, MinimumWidth = 80 };
         dataGridViewWindowConfigs.Columns.Add(procNameCol);
-        var titleHintCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.WindowTitleHint), HeaderText = "Window Title", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, MinimumWidth = 100 };
+
+        var execPathCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.ExecutablePath), HeaderText = "Executable Path", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight=30, MinimumWidth = 120, ToolTipText = "Full path to the executable (optional, helps with launching if Process Name alone is not enough)" };
+        dataGridViewWindowConfigs.Columns.Add(execPathCol);
+
+        var titleHintCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.WindowTitleHint), HeaderText = "Window Title", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, FillWeight=25, MinimumWidth = 100 };
         dataGridViewWindowConfigs.Columns.Add(titleHintCol);
+
         var ctrlPosCol = new DataGridViewCheckBoxColumn { DataPropertyName = nameof(WindowConfig.ControlPosition), HeaderText = "Pos?", ToolTipText="Control Position", Width = 40 };
         dataGridViewWindowConfigs.Columns.Add(ctrlPosCol);
         var xCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetX), HeaderText = "X", Width = 50 };
@@ -211,6 +229,7 @@ public partial class FormMain : Form
         dataGridViewWindowConfigs.Columns.Add(wCol);
         var hCol = new DataGridViewTextBoxColumn { DataPropertyName = nameof(WindowConfig.TargetHeight), HeaderText = "H", Width = 50 };
         dataGridViewWindowConfigs.Columns.Add(hCol);
+
         xCol.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
         yCol.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
         wCol.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
@@ -270,15 +289,14 @@ public partial class FormMain : Form
             var bindableList = new SortableBindingList<WindowConfig>(_selectedProfileForEditing.WindowConfigs);
             dataGridViewWindowConfigs.DataSource = bindableList;
             groupBoxWindowConfigs.Text = $"Window Configurations for '{_selectedProfileForEditing.Name}'";
-            groupBoxWindowConfigs.Enabled = true;
         }
         else
         {
             dataGridViewWindowConfigs.DataSource = null;
             groupBoxWindowConfigs.Text = "Window Configurations (No Profile Selected)";
-            groupBoxWindowConfigs.Enabled = false;
         }
         dataGridViewWindowConfigs_SelectionChanged(null, null);
+        UpdateProfileSpecificActionButtonsState();
     }
 
     void ShowForm()
@@ -407,7 +425,7 @@ public partial class FormMain : Form
         LoadWindowConfigsForSelectedProfile();
         _windowMonitorService.LoadAndApplySettings();
 
-        UpdateTestProfileButtonState();
+        UpdateProfileSpecificActionButtonsState();
         UpdateProfileManagementButtonsState();
     }
 
@@ -432,30 +450,42 @@ public partial class FormMain : Form
             {
                 try
                 {
-                    try
-                    {
-                        Process.GetProcessById(selectedProcess.Id);
-                    }
-                    catch(ArgumentException)
-                    {
-                        MessageBox.Show($"The selected process '{selectedProcess.ProcessName}' (PID: {selectedProcess.Id}) is no longer running.",
-                                        "Process Exited", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
+                    Process.GetProcessById(selectedProcess.Id);
+                    if(selectedProcess.HasExited) throw new ArgumentException("Process has exited.");
+
 
                     if(NativeMethods.GetWindowRect(selectedHWnd, out RECT currentRect))
                     {
                         if(currentRect.Width <= 0 || currentRect.Height <= 0)
                         {
-                            MessageBox.Show($"The selected window for '{selectedProcess.ProcessName}' (PID: {selectedProcess.Id}) has invalid dimensions (e.g., 0x0).\nThis can occur if the target application is running with higher privileges (e.g., as Administrator) and this program is not. Try running Window Positioner as Administrator.\nSome applications (like Cheat Engine) may also actively try to hide their window details, or might not have a standard main window, even from admin processes.",
+                            MessageBox.Show($"The selected window for '{selectedProcess.ProcessName}' (PID: {selectedProcess.Id}) has invalid dimensions (e.g., 0x0).\nThis can occur if the target application is running with higher privileges (e.g., as Administrator) and this program is not. Try running Window Positioner as Administrator.\nSome applications may also actively try to hide their window details, or might not have a standard main window, even from admin processes.",
                                             "Dimension Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
+
+                        string executablePath = string.Empty;
+                        try
+                        {
+                            if(!selectedProcess.HasExited)
+                            {
+                                executablePath = selectedProcess.MainModule?.FileName;
+                            }
+                        }
+                        catch(System.ComponentModel.Win32Exception ex)
+                        {
+                            Debug.WriteLine($"Could not get ExecutablePath for {selectedProcess.ProcessName}: {ex.Message}. This often happens if the target process runs with higher privileges.");
+                        }
+                        catch(InvalidOperationException ex)
+                        {
+                            Debug.WriteLine($"Could not get ExecutablePath for {selectedProcess.ProcessName} as it may have exited: {ex.Message}");
+                        }
+
 
                         var newConfig = new WindowConfig
                         {
                             IsEnabled = true,
                             ProcessName = selectedProcess.ProcessName,
+                            ExecutablePath = executablePath,
                             WindowTitleHint = selectedTitle,
                             ControlPosition = true,
                             TargetX = currentRect.Left,
@@ -487,12 +517,18 @@ public partial class FormMain : Form
                                 dataGridViewWindowConfigs.FirstDisplayedScrollingRowIndex = newRow.Index;
                             }
                         }
+                        UpdateProfileSpecificActionButtonsState();
                     }
                     else
                     {
                         MessageBox.Show($"Could not get window dimensions for '{selectedProcess.ProcessName}'. The window might have closed or is inaccessible.",
                                         "Dimension Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
+                }
+                catch(ArgumentException argEx)
+                {
+                    MessageBox.Show($"The selected process '{selectedProcess.ProcessName}' (PID: {selectedProcess.Id}) is no longer running or is inaccessible: {argEx.Message}",
+                                        "Process Exited or Inaccessible", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 catch(Exception ex)
                 {
@@ -512,6 +548,7 @@ public partial class FormMain : Form
                 if(dataGridViewWindowConfigs.DataSource is SortableBindingList<WindowConfig> bindingList)
                 {
                     bindingList.Remove(selectedConfig);
+                    UpdateProfileSpecificActionButtonsState();
                 }
             }
         }
@@ -532,6 +569,8 @@ public partial class FormMain : Form
         buttonFetchPosition.Enabled = rowSelected;
         buttonFetchSize.Enabled = rowSelected;
         buttonRemoveWindowConfig.Enabled = rowSelected;
+
+        if(buttonActivateLaunchApp != null) buttonActivateLaunchApp.Enabled = rowSelected;
     }
 
     IntPtr FindWindowForConfig(WindowConfig config)
@@ -541,9 +580,14 @@ public partial class FormMain : Form
         {
             Process[] processes = Process.GetProcessesByName(config.ProcessName);
             if(!processes.Any()) return IntPtr.Zero;
+
             foreach(var proc in processes)
             {
                 if(proc.MainWindowHandle == IntPtr.Zero) continue;
+
+                try { Process.GetProcessById(proc.Id); }
+                catch(ArgumentException) { continue; }
+
                 if(!string.IsNullOrWhiteSpace(config.WindowTitleHint))
                 {
                     string currentTitle = NativeMethods.GetWindowTitle(proc.MainWindowHandle);
@@ -641,6 +685,7 @@ public partial class FormMain : Form
                 {
                     IsEnabled = windowConfig.IsEnabled,
                     ProcessName = windowConfig.ProcessName,
+                    ExecutablePath = windowConfig.ExecutablePath,
                     WindowTitleHint = windowConfig.WindowTitleHint,
                     ControlPosition = windowConfig.ControlPosition,
                     TargetX = windowConfig.TargetX,
@@ -679,14 +724,79 @@ public partial class FormMain : Form
     {
         if(!_isFormLoaded) return;
 
-        _appSettings.DisableProgramActivity = checkBoxDisableProgram.Checked;
-        _windowMonitorService.SetPositioningActive(!_appSettings.DisableProgramActivity);
+        bool isProgramDisabled = checkBoxDisableProgram.Checked;
+        _appSettings.DisableProgramActivity = isProgramDisabled;
+        _windowMonitorService.SetPositioningActive(!isProgramDisabled);
+
+        groupBoxWindowConfigs.Enabled = !isProgramDisabled;
+        groupBoxProfiles.Enabled = !isProgramDisabled;
+
+        groupBoxWindowConfigs.BackColor = isProgramDisabled ? SystemColors.ControlDark : SystemColors.Control;
+        checkBoxDisableProgram.ForeColor = isProgramDisabled ? Color.Red : SystemColors.ControlText;
+    }
 
 
-        groupBoxWindowConfigs.Enabled = !_appSettings.DisableProgramActivity;
-        groupBoxProfiles.Enabled = !_appSettings.DisableProgramActivity;
+    private void buttonActivateLaunchApp_Click(object sender, EventArgs e)
+    {
+        if(dataGridViewWindowConfigs.SelectedRows.Count > 0 &&
+            dataGridViewWindowConfigs.SelectedRows[0].DataBoundItem is WindowConfig selectedConfig)
+        {
+            if(!selectedConfig.IsEnabled)
+            {
+                MessageBox.Show($"This configuration for '{selectedConfig.ProcessName}' is disabled.", "Action Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-        groupBoxWindowConfigs.BackColor = _appSettings.DisableProgramActivity ? Color.Gray : Color.Transparent;
-        checkBoxDisableProgram.ForeColor = _appSettings.DisableProgramActivity ? Color.Red : Color.Black;
+            bool success = _windowActionService.ActivateOrLaunchApp(selectedConfig);
+            if(!success)
+            {
+                Process runningProcess = _windowActionService.GetRunningProcess(selectedConfig);
+                string appIdentifier = string.IsNullOrWhiteSpace(selectedConfig.ExecutablePath) ? selectedConfig.ProcessName : selectedConfig.ExecutablePath;
+                appIdentifier = string.IsNullOrWhiteSpace(appIdentifier) ? "(Unnamed App)" : appIdentifier;
+
+                if(runningProcess == null)
+                {
+                    MessageBox.Show($"Failed to launch '{appIdentifier}'.\nEnsure the Executable Path (if specified) or Process Name is correct and the application can be started.", "Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to bring '{appIdentifier}' to the foreground.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+    }
+
+    private void buttonLaunchAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null)
+        {
+            MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
+        {
+            MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to launch.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        _windowActionService.ActivateOrLaunchAllAppsInProfile(_selectedProfileForEditing, launchIfNotRunning: true, bringToForegroundIfRunning: false);
+        MessageBox.Show($"Attempted to launch all missing enabled apps in profile '{_selectedProfileForEditing.Name}'.\nCheck Debug Output for details.", "Launch All Requested", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    private void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
+    {
+        if(_selectedProfileForEditing == null)
+        {
+            MessageBox.Show("Please select a profile first.", "No Profile Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+        if(!_selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled))
+        {
+            MessageBox.Show($"Profile '{_selectedProfileForEditing.Name}' has no enabled window configurations to focus.", "No Action Taken", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        _windowActionService.ActivateOrLaunchAllAppsInProfile(_selectedProfileForEditing, launchIfNotRunning: false, bringToForegroundIfRunning: true);
+        MessageBox.Show($"Attempted to bring all running, enabled apps in profile '{_selectedProfileForEditing.Name}' to the foreground.\nCheck Debug Output for details.", "Focus All Requested", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }
