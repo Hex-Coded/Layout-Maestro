@@ -18,7 +18,6 @@
         private System.Windows.Forms.DataGridView dataGridViewWindowConfigs;
         private System.Windows.Forms.Button buttonRemoveWindowConfig;
         private System.Windows.Forms.Button buttonAddWindowConfig;
-        private System.Windows.Forms.CheckBox checkBoxStartWithWindows;
         private System.Windows.Forms.Button buttonSaveChanges;
         private System.Windows.Forms.Label labelActiveProfile;
         private System.Windows.Forms.ComboBox comboBoxActiveProfile;
@@ -26,6 +25,12 @@
         private System.Windows.Forms.ToolTip toolTipGeneral;
         private System.Windows.Forms.Button buttonFetchPosition;
         private System.Windows.Forms.Button buttonFetchSize;
+        private System.Windows.Forms.Button buttonCloneProfile;
+        private System.Windows.Forms.Button buttonTestSelectedProfile;
+        private System.Windows.Forms.Label labelStartupOptions;
+        private System.Windows.Forms.ComboBox comboBoxStartupOptions;
+        private System.Windows.Forms.LinkLabel linkLabelGitHub;
+        private System.Windows.Forms.Label labelCredits;
 
         protected override void Dispose(bool disposing)
         {
@@ -38,252 +43,369 @@
 
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.notifyIconMain = new System.Windows.Forms.NotifyIcon(this.components);
-            this.contextMenuStripTray = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tabControlMain = new System.Windows.Forms.TabControl();
-            this.tabPageProfiles = new System.Windows.Forms.TabPage();
-            this.groupBoxWindowConfigs = new System.Windows.Forms.GroupBox();
-            this.buttonFetchSize = new System.Windows.Forms.Button();
-            this.buttonFetchPosition = new System.Windows.Forms.Button();
-            this.dataGridViewWindowConfigs = new System.Windows.Forms.DataGridView();
-            this.buttonRemoveWindowConfig = new System.Windows.Forms.Button();
-            this.buttonAddWindowConfig = new System.Windows.Forms.Button();
-            this.groupBoxProfiles = new System.Windows.Forms.GroupBox();
-            this.buttonRenameProfile = new System.Windows.Forms.Button();
-            this.labelActiveProfile = new System.Windows.Forms.Label();
-            this.comboBoxActiveProfile = new System.Windows.Forms.ComboBox();
-            this.buttonRemoveProfile = new System.Windows.Forms.Button();
-            this.buttonAddProfile = new System.Windows.Forms.Button();
-            this.listBoxProfiles = new System.Windows.Forms.ListBox();
-            this.tabPageSettings = new System.Windows.Forms.TabPage();
-            this.checkBoxStartWithWindows = new System.Windows.Forms.CheckBox();
-            this.buttonSaveChanges = new System.Windows.Forms.Button();
-            this.toolTipGeneral = new System.Windows.Forms.ToolTip(this.components);
-            this.contextMenuStripTray.SuspendLayout();
-            this.tabControlMain.SuspendLayout();
-            this.tabPageProfiles.SuspendLayout();
-            this.groupBoxWindowConfigs.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWindowConfigs)).BeginInit();
-            this.groupBoxProfiles.SuspendLayout();
-            this.tabPageSettings.SuspendLayout();
-            this.SuspendLayout();
-            this.notifyIconMain.ContextMenuStrip = this.contextMenuStripTray;
-            this.notifyIconMain.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIconMain.Icon")));
-            this.notifyIconMain.Text = "Window Positioner";
-            this.notifyIconMain.Visible = true;
-            this.notifyIconMain.DoubleClick += new System.EventHandler(this.notifyIconMain_DoubleClick);
-            this.contextMenuStripTray.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.settingsToolStripMenuItem,
-            this.exitToolStripMenuItem});
-            this.contextMenuStripTray.Name = "contextMenuStripTray";
-            this.contextMenuStripTray.Size = new System.Drawing.Size(117, 48);
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.settingsToolStripMenuItem.Text = "&Settings";
-            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
-            this.exitToolStripMenuItem.Text = "&Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            this.tabControlMain.Controls.Add(this.tabPageProfiles);
-            this.tabControlMain.Controls.Add(this.tabPageSettings);
-            this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControlMain.Location = new System.Drawing.Point(0, 0);
-            this.tabControlMain.Name = "tabControlMain";
-            this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(784, 521);
-            this.tabControlMain.TabIndex = 0;
-            this.tabPageProfiles.Controls.Add(this.groupBoxWindowConfigs);
-            this.tabPageProfiles.Controls.Add(this.groupBoxProfiles);
-            this.tabPageProfiles.Location = new System.Drawing.Point(4, 24);
-            this.tabPageProfiles.Name = "tabPageProfiles";
-            this.tabPageProfiles.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageProfiles.Size = new System.Drawing.Size(776, 493);
-            this.tabPageProfiles.TabIndex = 0;
-            this.tabPageProfiles.Text = "Profiles & Windows";
-            this.tabPageProfiles.UseVisualStyleBackColor = true;
-            this.groupBoxWindowConfigs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonFetchSize);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonFetchPosition);
-            this.groupBoxWindowConfigs.Controls.Add(this.dataGridViewWindowConfigs);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonRemoveWindowConfig);
-            this.groupBoxWindowConfigs.Controls.Add(this.buttonAddWindowConfig);
-            this.groupBoxWindowConfigs.Location = new System.Drawing.Point(200, 7);
-            this.groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
-            this.groupBoxWindowConfigs.Size = new System.Drawing.Size(570, 480);
-            this.groupBoxWindowConfigs.TabIndex = 1;
-            this.groupBoxWindowConfigs.TabStop = false;
-            this.groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
-            this.buttonFetchSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonFetchSize.Enabled = false;
-            this.buttonFetchSize.Location = new System.Drawing.Point(464, 445);
-            this.buttonFetchSize.Name = "buttonFetchSize";
-            this.buttonFetchSize.Size = new System.Drawing.Size(100, 25);
-            this.buttonFetchSize.TabIndex = 4;
-            this.buttonFetchSize.Text = "Fetch Size";
-            this.toolTipGeneral.SetToolTip(this.buttonFetchSize, "Update Width,Height from the live window matching this configuration");
-            this.buttonFetchSize.UseVisualStyleBackColor = true;
-            this.buttonFetchSize.Click += new System.EventHandler(this.buttonFetchSize_Click);
-            this.buttonFetchPosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonFetchPosition.Enabled = false;
-            this.buttonFetchPosition.Location = new System.Drawing.Point(358, 445);
-            this.buttonFetchPosition.Name = "buttonFetchPosition";
-            this.buttonFetchPosition.Size = new System.Drawing.Size(100, 25);
-            this.buttonFetchPosition.TabIndex = 3;
-            this.buttonFetchPosition.Text = "Fetch Position";
-            this.toolTipGeneral.SetToolTip(this.buttonFetchPosition, "Update X,Y from the live window matching this configuration");
-            this.buttonFetchPosition.UseVisualStyleBackColor = true;
-            this.buttonFetchPosition.Click += new System.EventHandler(this.buttonFetchPosition_Click);
-            this.dataGridViewWindowConfigs.AllowUserToAddRows = false;
-            this.dataGridViewWindowConfigs.AllowUserToDeleteRows = false;
-            this.dataGridViewWindowConfigs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridViewWindowConfigs.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dataGridViewWindowConfigs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewWindowConfigs.Location = new System.Drawing.Point(7, 23);
-            this.dataGridViewWindowConfigs.MultiSelect = false;
-            this.dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
-            this.dataGridViewWindowConfigs.RowTemplate.Height = 25;
-            this.dataGridViewWindowConfigs.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridViewWindowConfigs.Size = new System.Drawing.Size(557, 412);
-            this.dataGridViewWindowConfigs.TabIndex = 0;
-            this.dataGridViewWindowConfigs.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewWindowConfigs_CellEndEdit);
-            this.dataGridViewWindowConfigs.SelectionChanged += new System.EventHandler(this.dataGridViewWindowConfigs_SelectionChanged);
-            this.buttonRemoveWindowConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRemoveWindowConfig.Enabled = false;
-            this.buttonRemoveWindowConfig.Location = new System.Drawing.Point(88, 445);
-            this.buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
-            this.buttonRemoveWindowConfig.Size = new System.Drawing.Size(75, 25);
-            this.buttonRemoveWindowConfig.TabIndex = 2;
-            this.buttonRemoveWindowConfig.Text = "Remove";
-            this.buttonRemoveWindowConfig.UseVisualStyleBackColor = true;
-            this.buttonRemoveWindowConfig.Click += new System.EventHandler(this.buttonRemoveWindowConfig_Click);
-            this.buttonAddWindowConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonAddWindowConfig.Location = new System.Drawing.Point(7, 445);
-            this.buttonAddWindowConfig.Name = "buttonAddWindowConfig";
-            this.buttonAddWindowConfig.Size = new System.Drawing.Size(75, 25);
-            this.buttonAddWindowConfig.TabIndex = 1;
-            this.buttonAddWindowConfig.Text = "Add New";
-            this.toolTipGeneral.SetToolTip(this.buttonAddWindowConfig, "Add a new window configuration by selecting a running process");
-            this.buttonAddWindowConfig.UseVisualStyleBackColor = true;
-            this.buttonAddWindowConfig.Click += new System.EventHandler(this.buttonAddWindowConfig_Click);
-            this.groupBoxProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.groupBoxProfiles.Controls.Add(this.buttonRenameProfile);
-            this.groupBoxProfiles.Controls.Add(this.labelActiveProfile);
-            this.groupBoxProfiles.Controls.Add(this.comboBoxActiveProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonRemoveProfile);
-            this.groupBoxProfiles.Controls.Add(this.buttonAddProfile);
-            this.groupBoxProfiles.Controls.Add(this.listBoxProfiles);
-            this.groupBoxProfiles.Location = new System.Drawing.Point(7, 7);
-            this.groupBoxProfiles.Name = "groupBoxProfiles";
-            this.groupBoxProfiles.Size = new System.Drawing.Size(187, 480);
-            this.groupBoxProfiles.TabIndex = 0;
-            this.groupBoxProfiles.TabStop = false;
-            this.groupBoxProfiles.Text = "Profiles";
-            this.buttonRenameProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRenameProfile.Location = new System.Drawing.Point(7, 414);
-            this.buttonRenameProfile.Name = "buttonRenameProfile";
-            this.buttonRenameProfile.Size = new System.Drawing.Size(174, 25);
-            this.buttonRenameProfile.TabIndex = 5;
-            this.buttonRenameProfile.Text = "Rename Selected";
-            this.buttonRenameProfile.UseVisualStyleBackColor = true;
-            this.buttonRenameProfile.Click += new System.EventHandler(this.buttonRenameProfile_Click);
-            this.labelActiveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.labelActiveProfile.AutoSize = true;
-            this.labelActiveProfile.Location = new System.Drawing.Point(7, 355);
-            this.labelActiveProfile.Name = "labelActiveProfile";
-            this.labelActiveProfile.Size = new System.Drawing.Size(78, 15);
-            this.labelActiveProfile.TabIndex = 4;
-            this.labelActiveProfile.Text = "Active Profile:";
-            this.comboBoxActiveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.comboBoxActiveProfile.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxActiveProfile.FormattingEnabled = true;
-            this.comboBoxActiveProfile.Location = new System.Drawing.Point(7, 373);
-            this.comboBoxActiveProfile.Name = "comboBoxActiveProfile";
-            this.comboBoxActiveProfile.Size = new System.Drawing.Size(174, 23);
-            this.comboBoxActiveProfile.TabIndex = 3;
-            this.comboBoxActiveProfile.SelectedIndexChanged += new System.EventHandler(this.comboBoxActiveProfile_SelectedIndexChanged);
-            this.buttonRemoveProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRemoveProfile.Location = new System.Drawing.Point(98, 445);
-            this.buttonRemoveProfile.Name = "buttonRemoveProfile";
-            this.buttonRemoveProfile.Size = new System.Drawing.Size(83, 25);
-            this.buttonRemoveProfile.TabIndex = 2;
-            this.buttonRemoveProfile.Text = "Remove";
-            this.buttonRemoveProfile.UseVisualStyleBackColor = true;
-            this.buttonRemoveProfile.Click += new System.EventHandler(this.buttonRemoveProfile_Click);
-            this.buttonAddProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonAddProfile.Location = new System.Drawing.Point(7, 445);
-            this.buttonAddProfile.Name = "buttonAddProfile";
-            this.buttonAddProfile.Size = new System.Drawing.Size(83, 25);
-            this.buttonAddProfile.TabIndex = 1;
-            this.buttonAddProfile.Text = "Add New";
-            this.buttonAddProfile.UseVisualStyleBackColor = true;
-            this.buttonAddProfile.Click += new System.EventHandler(this.buttonAddProfile_Click);
-            this.listBoxProfiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.listBoxProfiles.FormattingEnabled = true;
-            this.listBoxProfiles.ItemHeight = 15;
-            this.listBoxProfiles.Location = new System.Drawing.Point(7, 23);
-            this.listBoxProfiles.Name = "listBoxProfiles";
-            this.listBoxProfiles.Size = new System.Drawing.Size(174, 319);
-            this.listBoxProfiles.TabIndex = 0;
-            this.listBoxProfiles.SelectedIndexChanged += new System.EventHandler(this.listBoxProfiles_SelectedIndexChanged);
-            this.tabPageSettings.Controls.Add(this.checkBoxStartWithWindows);
-            this.tabPageSettings.Location = new System.Drawing.Point(4, 24);
-            this.tabPageSettings.Name = "tabPageSettings";
-            this.tabPageSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSettings.Size = new System.Drawing.Size(776, 493);
-            this.tabPageSettings.TabIndex = 1;
-            this.tabPageSettings.Text = "Application Settings";
-            this.tabPageSettings.UseVisualStyleBackColor = true;
-            this.checkBoxStartWithWindows.AutoSize = true;
-            this.checkBoxStartWithWindows.Location = new System.Drawing.Point(15, 15);
-            this.checkBoxStartWithWindows.Name = "checkBoxStartWithWindows";
-            this.checkBoxStartWithWindows.Size = new System.Drawing.Size(127, 19);
-            this.checkBoxStartWithWindows.TabIndex = 0;
-            this.checkBoxStartWithWindows.Text = "Start with Windows";
-            this.checkBoxStartWithWindows.UseVisualStyleBackColor = true;
-            this.checkBoxStartWithWindows.CheckedChanged += new System.EventHandler(this.checkBoxStartWithWindows_CheckedChanged);
-            this.buttonSaveChanges.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.buttonSaveChanges.Location = new System.Drawing.Point(0, 521);
-            this.buttonSaveChanges.Name = "buttonSaveChanges";
-            this.buttonSaveChanges.Size = new System.Drawing.Size(784, 40);
-            this.buttonSaveChanges.TabIndex = 1;
-            this.buttonSaveChanges.Text = "Save All Changes";
-            this.buttonSaveChanges.UseVisualStyleBackColor = true;
-            this.buttonSaveChanges.Click += new System.EventHandler(this.buttonSaveChanges_Click);
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(784, 561);
-            this.Controls.Add(this.tabControlMain);
-            this.Controls.Add(this.buttonSaveChanges);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(600, 400);
-            this.Name = "FormMain";
-            this.Text = "Window Positioner Settings";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
-            this.Load += new System.EventHandler(this.FormMain_Load);
-            this.Shown += new System.EventHandler(this.FormMain_Shown);
-            this.contextMenuStripTray.ResumeLayout(false);
-            this.tabControlMain.ResumeLayout(false);
-            this.tabPageProfiles.ResumeLayout(false);
-            this.groupBoxWindowConfigs.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewWindowConfigs)).EndInit();
-            this.groupBoxProfiles.ResumeLayout(false);
-            this.groupBoxProfiles.PerformLayout();
-            this.tabPageSettings.ResumeLayout(false);
-            this.tabPageSettings.PerformLayout();
-            this.ResumeLayout(false);
+            components = new System.ComponentModel.Container();
+            notifyIconMain = new NotifyIcon(components);
+            contextMenuStripTray = new ContextMenuStrip(components);
+            settingsToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
+            tabControlMain = new TabControl();
+            tabPageProfiles = new TabPage();
+            groupBoxWindowConfigs = new GroupBox();
+            buttonFetchSize = new Button();
+            buttonFetchPosition = new Button();
+            dataGridViewWindowConfigs = new DataGridView();
+            buttonRemoveWindowConfig = new Button();
+            buttonAddWindowConfig = new Button();
+            buttonTestSelectedProfile = new Button();
+            groupBoxProfiles = new GroupBox();
+            buttonRenameProfile = new Button();
+            labelActiveProfile = new Label();
+            comboBoxActiveProfile = new ComboBox();
+            buttonRemoveProfile = new Button();
+            buttonAddProfile = new Button();
+            listBoxProfiles = new ListBox();
+            buttonCloneProfile = new Button();
+            tabPageSettings = new TabPage();
+            linkLabelGitHub = new LinkLabel();
+            labelCredits = new Label();
+            comboBoxStartupOptions = new ComboBox();
+            labelStartupOptions = new Label();
+            buttonSaveChanges = new Button();
+            toolTipGeneral = new ToolTip(components);
+            contextMenuStripTray.SuspendLayout();
+            tabControlMain.SuspendLayout();
+            tabPageProfiles.SuspendLayout();
+            groupBoxWindowConfigs.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).BeginInit();
+            groupBoxProfiles.SuspendLayout();
+            tabPageSettings.SuspendLayout();
+            SuspendLayout();
+            // 
+            // notifyIconMain
+            // 
+            notifyIconMain.ContextMenuStrip = contextMenuStripTray;
+            notifyIconMain.Text = "Window Positioner";
+            notifyIconMain.Visible = true;
+            notifyIconMain.DoubleClick += notifyIconMain_DoubleClick;
+            // 
+            // contextMenuStripTray
+            // 
+            contextMenuStripTray.Items.AddRange(new ToolStripItem[] { settingsToolStripMenuItem, exitToolStripMenuItem });
+            contextMenuStripTray.Name = "contextMenuStripTray";
+            contextMenuStripTray.Size = new Size(117, 48);
+            // 
+            // settingsToolStripMenuItem
+            // 
+            settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            settingsToolStripMenuItem.Size = new Size(116, 22);
+            settingsToolStripMenuItem.Text = "&Settings";
+            settingsToolStripMenuItem.Click += settingsToolStripMenuItem_Click;
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(116, 22);
+            exitToolStripMenuItem.Text = "&Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
+            // 
+            // tabControlMain
+            // 
+            tabControlMain.Controls.Add(tabPageProfiles);
+            tabControlMain.Controls.Add(tabPageSettings);
+            tabControlMain.Dock = DockStyle.Fill;
+            tabControlMain.Location = new Point(0, 0);
+            tabControlMain.Name = "tabControlMain";
+            tabControlMain.SelectedIndex = 0;
+            tabControlMain.Size = new Size(784, 521);
+            tabControlMain.TabIndex = 0;
+            // 
+            // tabPageProfiles
+            // 
+            tabPageProfiles.Controls.Add(groupBoxWindowConfigs);
+            tabPageProfiles.Controls.Add(groupBoxProfiles);
+            tabPageProfiles.Location = new Point(4, 24);
+            tabPageProfiles.Name = "tabPageProfiles";
+            tabPageProfiles.Padding = new Padding(3);
+            tabPageProfiles.Size = new Size(776, 493);
+            tabPageProfiles.TabIndex = 0;
+            tabPageProfiles.Text = "Profiles & Windows";
+            tabPageProfiles.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxWindowConfigs
+            // 
+            groupBoxWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            groupBoxWindowConfigs.Controls.Add(buttonFetchSize);
+            groupBoxWindowConfigs.Controls.Add(buttonFetchPosition);
+            groupBoxWindowConfigs.Controls.Add(dataGridViewWindowConfigs);
+            groupBoxWindowConfigs.Controls.Add(buttonRemoveWindowConfig);
+            groupBoxWindowConfigs.Controls.Add(buttonAddWindowConfig);
+            groupBoxWindowConfigs.Controls.Add(buttonTestSelectedProfile);
+            groupBoxWindowConfigs.Location = new Point(200, 7);
+            groupBoxWindowConfigs.Name = "groupBoxWindowConfigs";
+            groupBoxWindowConfigs.Size = new Size(570, 480);
+            groupBoxWindowConfigs.TabIndex = 1;
+            groupBoxWindowConfigs.TabStop = false;
+            groupBoxWindowConfigs.Text = "Window Configurations for Selected Profile";
+            // 
+            // buttonFetchSize
+            // 
+            buttonFetchSize.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonFetchSize.Enabled = false;
+            buttonFetchSize.Location = new Point(464, 445);
+            buttonFetchSize.Name = "buttonFetchSize";
+            buttonFetchSize.Size = new Size(100, 25);
+            buttonFetchSize.TabIndex = 4;
+            buttonFetchSize.Text = "Fetch Size";
+            toolTipGeneral.SetToolTip(buttonFetchSize, "Update Width,Height from the live window matching this configuration");
+            buttonFetchSize.UseVisualStyleBackColor = true;
+            buttonFetchSize.Click += buttonFetchSize_Click;
+            // 
+            // buttonFetchPosition
+            // 
+            buttonFetchPosition.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonFetchPosition.Enabled = false;
+            buttonFetchPosition.Location = new Point(358, 445);
+            buttonFetchPosition.Name = "buttonFetchPosition";
+            buttonFetchPosition.Size = new Size(100, 25);
+            buttonFetchPosition.TabIndex = 3;
+            buttonFetchPosition.Text = "Fetch Position";
+            toolTipGeneral.SetToolTip(buttonFetchPosition, "Update X,Y from the live window matching this configuration");
+            buttonFetchPosition.UseVisualStyleBackColor = true;
+            buttonFetchPosition.Click += buttonFetchPosition_Click;
+            // 
+            // dataGridViewWindowConfigs
+            // 
+            dataGridViewWindowConfigs.AllowUserToAddRows = false;
+            dataGridViewWindowConfigs.AllowUserToDeleteRows = false;
+            dataGridViewWindowConfigs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridViewWindowConfigs.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridViewWindowConfigs.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewWindowConfigs.Location = new Point(7, 23);
+            dataGridViewWindowConfigs.MultiSelect = false;
+            dataGridViewWindowConfigs.Name = "dataGridViewWindowConfigs";
+            dataGridViewWindowConfigs.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridViewWindowConfigs.Size = new Size(557, 412);
+            dataGridViewWindowConfigs.TabIndex = 0;
+            dataGridViewWindowConfigs.CellEndEdit += dataGridViewWindowConfigs_CellEndEdit;
+            dataGridViewWindowConfigs.SelectionChanged += dataGridViewWindowConfigs_SelectionChanged;
+            // 
+            // buttonRemoveWindowConfig
+            // 
+            buttonRemoveWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonRemoveWindowConfig.Enabled = false;
+            buttonRemoveWindowConfig.Location = new Point(88, 445);
+            buttonRemoveWindowConfig.Name = "buttonRemoveWindowConfig";
+            buttonRemoveWindowConfig.Size = new Size(75, 25);
+            buttonRemoveWindowConfig.TabIndex = 2;
+            buttonRemoveWindowConfig.Text = "Remove";
+            buttonRemoveWindowConfig.UseVisualStyleBackColor = true;
+            buttonRemoveWindowConfig.Click += buttonRemoveWindowConfig_Click;
+            // 
+            // buttonAddWindowConfig
+            // 
+            buttonAddWindowConfig.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonAddWindowConfig.Location = new Point(7, 445);
+            buttonAddWindowConfig.Name = "buttonAddWindowConfig";
+            buttonAddWindowConfig.Size = new Size(75, 25);
+            buttonAddWindowConfig.TabIndex = 1;
+            buttonAddWindowConfig.Text = "Add New";
+            toolTipGeneral.SetToolTip(buttonAddWindowConfig, "Add a new window configuration by selecting a running process");
+            buttonAddWindowConfig.UseVisualStyleBackColor = true;
+            buttonAddWindowConfig.Click += buttonAddWindowConfig_Click;
+            // 
+            // buttonTestSelectedProfile
+            // 
+            buttonTestSelectedProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonTestSelectedProfile.Enabled = false;
+            buttonTestSelectedProfile.Location = new Point(200, 445);
+            buttonTestSelectedProfile.Name = "buttonTestSelectedProfile";
+            buttonTestSelectedProfile.Size = new Size(150, 25);
+            buttonTestSelectedProfile.TabIndex = 5;
+            buttonTestSelectedProfile.Text = "Test This Profile's Layout";
+            toolTipGeneral.SetToolTip(buttonTestSelectedProfile, "Apply window positions/sizes for the currently selected profile in the list above.");
+            buttonTestSelectedProfile.UseVisualStyleBackColor = true;
+            buttonTestSelectedProfile.Click += buttonTestSelectedProfile_Click;
+            // 
+            // groupBoxProfiles
+            // 
+            groupBoxProfiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            groupBoxProfiles.Controls.Add(buttonRenameProfile);
+            groupBoxProfiles.Controls.Add(labelActiveProfile);
+            groupBoxProfiles.Controls.Add(comboBoxActiveProfile);
+            groupBoxProfiles.Controls.Add(buttonRemoveProfile);
+            groupBoxProfiles.Controls.Add(buttonAddProfile);
+            groupBoxProfiles.Controls.Add(listBoxProfiles);
+            groupBoxProfiles.Controls.Add(buttonCloneProfile);
+            groupBoxProfiles.Location = new Point(7, 7);
+            groupBoxProfiles.Name = "groupBoxProfiles";
+            groupBoxProfiles.Size = new Size(187, 480);
+            groupBoxProfiles.TabIndex = 0;
+            groupBoxProfiles.TabStop = false;
+            groupBoxProfiles.Text = "Profile Editor";
+            // 
+            // buttonRenameProfile
+            // 
+            buttonRenameProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonRenameProfile.Location = new Point(7, 414);
+            buttonRenameProfile.Name = "buttonRenameProfile";
+            buttonRenameProfile.Size = new Size(174, 25);
+            buttonRenameProfile.TabIndex = 5;
+            buttonRenameProfile.Text = "Rename Selected";
+            buttonRenameProfile.UseVisualStyleBackColor = true;
+            buttonRenameProfile.Click += buttonRenameProfile_Click;
+            // 
+            // labelActiveProfile
+            // 
+            labelActiveProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelActiveProfile.AutoSize = true;
+            labelActiveProfile.Location = new Point(9, 367);
+            labelActiveProfile.Name = "labelActiveProfile";
+            labelActiveProfile.Size = new Size(80, 15);
+            labelActiveProfile.TabIndex = 4;
+            labelActiveProfile.Text = "Active Profile:";
+            // 
+            // comboBoxActiveProfile
+            // 
+            comboBoxActiveProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            comboBoxActiveProfile.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxActiveProfile.FormattingEnabled = true;
+            comboBoxActiveProfile.Location = new Point(7, 385);
+            comboBoxActiveProfile.Name = "comboBoxActiveProfile";
+            comboBoxActiveProfile.Size = new Size(174, 23);
+            comboBoxActiveProfile.TabIndex = 3;
+            comboBoxActiveProfile.SelectedIndexChanged += comboBoxActiveProfile_SelectedIndexChanged;
+            // 
+            // buttonRemoveProfile
+            // 
+            buttonRemoveProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonRemoveProfile.Location = new Point(98, 445);
+            buttonRemoveProfile.Name = "buttonRemoveProfile";
+            buttonRemoveProfile.Size = new Size(83, 25);
+            buttonRemoveProfile.TabIndex = 2;
+            buttonRemoveProfile.Text = "Remove";
+            buttonRemoveProfile.UseVisualStyleBackColor = true;
+            buttonRemoveProfile.Click += buttonRemoveProfile_Click;
+            // 
+            // buttonAddProfile
+            // 
+            buttonAddProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonAddProfile.Location = new Point(7, 445);
+            buttonAddProfile.Name = "buttonAddProfile";
+            buttonAddProfile.Size = new Size(83, 25);
+            buttonAddProfile.TabIndex = 1;
+            buttonAddProfile.Text = "Add New";
+            buttonAddProfile.UseVisualStyleBackColor = true;
+            buttonAddProfile.Click += buttonAddProfile_Click;
+            // 
+            // listBoxProfiles
+            // 
+            listBoxProfiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            listBoxProfiles.FormattingEnabled = true;
+            listBoxProfiles.ItemHeight = 15;
+            listBoxProfiles.Location = new Point(7, 23);
+            listBoxProfiles.Name = "listBoxProfiles";
+            listBoxProfiles.Size = new Size(174, 229);
+            listBoxProfiles.TabIndex = 0;
+            listBoxProfiles.SelectedIndexChanged += listBoxProfiles_SelectedIndexChanged;
+            // 
+            // buttonCloneProfile
+            // 
+            buttonCloneProfile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            buttonCloneProfile.Location = new Point(7, 258);
+            buttonCloneProfile.Name = "buttonCloneProfile";
+            buttonCloneProfile.Size = new Size(174, 25);
+            buttonCloneProfile.TabIndex = 6;
+            buttonCloneProfile.Text = "Clone Selected Profile";
+            buttonCloneProfile.UseVisualStyleBackColor = true;
+            buttonCloneProfile.Click += buttonCloneProfile_Click;
+            // 
+            // tabPageSettings
+            // 
+            tabPageSettings.Controls.Add(linkLabelGitHub);
+            tabPageSettings.Controls.Add(labelCredits);
+            tabPageSettings.Controls.Add(comboBoxStartupOptions);
+            tabPageSettings.Controls.Add(labelStartupOptions);
+            tabPageSettings.Location = new Point(4, 24);
+            tabPageSettings.Name = "tabPageSettings";
+            tabPageSettings.Padding = new Padding(3);
+            tabPageSettings.Size = new Size(776, 493);
+            tabPageSettings.TabIndex = 1;
+            tabPageSettings.Text = "Application Settings";
+            tabPageSettings.UseVisualStyleBackColor = true;
 
+            // 
+            // linkLabelGitHub
+            // 
+            linkLabelGitHub.AutoSize = true;
+            linkLabelGitHub.Location = new Point(15, 80);
+            linkLabelGitHub.Name = "linkLabelGitHub";
+            linkLabelGitHub.Size = new Size(201, 15);
+            linkLabelGitHub.TabIndex = 3;
+            linkLabelGitHub.TabStop = true;
+            linkLabelGitHub.Text = "Visit our GitHub page (Example Link)";
+            linkLabelGitHub.LinkClicked += linkLabelGitHub_LinkClicked;
+            // 
+            // labelCredits
+            // 
+            labelCredits.AutoSize = true;
+            labelCredits.Location = new Point(15, 60);
+            labelCredits.Name = "labelCredits";
+            labelCredits.Size = new Size(174, 15);
+            labelCredits.TabIndex = 2;
+            labelCredits.Text = "Found an issue or have an idea?";
+            // 
+            // comboBoxStartupOptions
+            // 
+            comboBoxStartupOptions.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxStartupOptions.FormattingEnabled = true;
+            comboBoxStartupOptions.Location = new Point(220, 17);
+            comboBoxStartupOptions.Name = "comboBoxStartupOptions";
+            comboBoxStartupOptions.Size = new Size(250, 23);
+            comboBoxStartupOptions.TabIndex = 1;
+            // 
+            // labelStartupOptions
+            // 
+            labelStartupOptions.AutoSize = true;
+            labelStartupOptions.Location = new Point(15, 20);
+            labelStartupOptions.Name = "labelStartupOptions";
+            labelStartupOptions.Size = new Size(93, 15);
+            labelStartupOptions.TabIndex = 0;
+            labelStartupOptions.Text = "Startup Options:";
+            // 
+            // buttonSaveChanges
+            // 
+            buttonSaveChanges.Dock = DockStyle.Bottom;
+            buttonSaveChanges.Location = new Point(0, 521);
+            buttonSaveChanges.Name = "buttonSaveChanges";
+            buttonSaveChanges.Size = new Size(784, 40);
+            buttonSaveChanges.TabIndex = 1;
+            buttonSaveChanges.Text = "Save All Changes";
+            buttonSaveChanges.UseVisualStyleBackColor = true;
+            buttonSaveChanges.Click += buttonSaveChanges_Click;
+            // 
+            // FormMain
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(784, 561);
+            Controls.Add(tabControlMain);
+            Controls.Add(buttonSaveChanges);
+            MinimumSize = new Size(600, 400);
+            Name = "FormMain";
+            Text = "Window Positioner";
+            FormClosing += FormMain_FormClosing;
+            Load += FormMain_Load;
+            Shown += FormMain_Shown;
+            contextMenuStripTray.ResumeLayout(false);
+            tabControlMain.ResumeLayout(false);
+            tabPageProfiles.ResumeLayout(false);
+            groupBoxWindowConfigs.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridViewWindowConfigs).EndInit();
+            groupBoxProfiles.ResumeLayout(false);
+            groupBoxProfiles.PerformLayout();
+            tabPageSettings.ResumeLayout(false);
+            tabPageSettings.PerformLayout();
+            ResumeLayout(false);
         }
     }
 }
