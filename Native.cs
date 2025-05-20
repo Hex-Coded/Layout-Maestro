@@ -33,7 +33,6 @@ public static class Native
 
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    // Removed EntryPoint="GetWindowText" as it's the default for CharSet.Auto and method name
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
 

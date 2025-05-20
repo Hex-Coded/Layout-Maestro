@@ -289,7 +289,7 @@ public partial class FormMain : Form
 
         Process selectedProcess = formSelectProcess.SelectedProcess;
         IntPtr selectedHWnd = formSelectProcess.SelectedWindowHandle;
-        string selectedTitle = formSelectProcess.SelectedWindowTitle; // This is the full title. User can edit it in the grid to a prefix.
+        string selectedTitle = formSelectProcess.SelectedWindowTitle;
 
         if(selectedProcess == null || selectedHWnd == IntPtr.Zero) return;
 
@@ -306,7 +306,7 @@ public partial class FormMain : Form
                 IsEnabled = true,
                 ProcessName = selectedProcess.ProcessName,
                 ExecutablePath = executablePath,
-                WindowTitleHint = selectedTitle, // Initially full title, user can edit to a prefix
+                WindowTitleHint = selectedTitle,
                 LaunchAsAdmin = isSelectedProcessElevated,
                 ControlPosition = true,
                 TargetX = currentRect.Left,
@@ -393,12 +393,12 @@ public partial class FormMain : Form
         }
 
         DialogResult dr = MessageBox.Show(
-        $"Are you sure you want to attempt to close all enabled applications in the profile '{selectedProfileForEditing.Name}'?\n\nChoose 'Yes' to force kill if graceful close fails/times out.\nChoose 'No' for graceful close attempt only.",
-        "Confirm Close All Profile Apps",
-        MessageBoxButtons.YesNoCancel,
-        MessageBoxIcon.Warning,
-        MessageBoxDefaultButton.Button2
-    );
+            $"Are you sure you want to attempt to close all enabled applications in the profile '{selectedProfileForEditing.Name}'?\n\nChoose 'Yes' to force kill if graceful close fails/times out.\nChoose 'No' for graceful close attempt only.",
+            "Confirm Close All Profile Apps",
+            MessageBoxButtons.YesNoCancel,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2
+        );
 
         if(dr == DialogResult.Cancel)
         {
@@ -544,7 +544,7 @@ public partial class FormMain : Form
         notifyIconMain = null; Environment.Exit(0);
     }
 
-    void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { } // Intentionally empty, events handled by CellValueChanged or property bindings
+    void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { }
 
     void buttonFocus_Click(object sender, EventArgs e)
     {

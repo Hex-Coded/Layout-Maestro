@@ -435,13 +435,14 @@ public class WindowMonitorService : IDisposable
         if(profileToTest == null || !profileToTest.WindowConfigs.Any(wc => wc.IsEnabled))
         {
             Debug.WriteLine("WindowMonitorService: TestProfileLayout - No profile or enabled configs to test.");
-            System.Windows.Forms.MessageBox.Show("No enabled configurations in the selected profile to test.", "Test Layout", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            MessageBox.Show("No enabled configurations in the selected profile to test.", "Test Layout", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
         Debug.WriteLine($"WindowMonitorService: Testing layout for profile '{profileToTest.Name}'.");
         int appliedCount = 0;
         int notFoundCount = 0;
+        List<string> notFoundConfigNames = new List<string>();
 
         foreach(var config in profileToTest.WindowConfigs.Where(wc => wc.IsEnabled))
         {
@@ -458,12 +459,31 @@ public class WindowMonitorService : IDisposable
             }
             else
             {
-                Debug.WriteLine($"WindowMonitorService: TestProfileLayout - Window for '{config.ProcessName ?? "Unknown"}' not found.");
+                string configIdentifier = !string.IsNullOrWhiteSpace(config.ProcessName) && !string.IsNullOrWhiteSpace(config.WindowTitleHint) ? $"{config.ProcessName} | {config.WindowTitleHint}" :
+                                          !string.IsNullOrWhiteSpace(config.ProcessName) ? config.ProcessName :
+                                          !string.IsNullOrWhiteSpace(config.WindowTitleHint) ? $"Title Hint: '{config.WindowTitleHint}'" :
+                                          !string.IsNullOrWhiteSpace(config.ExecutablePath) ? System.IO.Path.GetFileName(config.ExecutablePath) :
+                                          "Unnamed Config";
+
+                Debug.WriteLine($"WindowMonitorService: TestProfileLayout - Window for '{configIdentifier}' not found.");
+                notFoundConfigNames.Add(configIdentifier);
                 notFoundCount++;
             }
-            await Task.Delay(_appSettings.DelayBetweenActionsMs > 0 ? _appSettings.DelayBetweenActionsMs : 100);
+            int delayMs = _appSettings.DelayBetweenActionsMs > 0 ? _appSettings.DelayBetweenActionsMs : 100;
+            await Task.Delay(delayMs);
         }
-        System.Windows.Forms.MessageBox.Show($"Layout test complete for profile '{profileToTest.Name}'.\n\nApplied to: {appliedCount} window(s)\nNot found: {notFoundCount} window(s)", "Test Layout Complete", System.Windows.Forms.MessageBoxButtons.OK);
+
+        string summaryMessage = $"Layout test complete for profile '{profileToTest.Name}'.\n\n" +
+                                $"Applied to: {appliedCount} window(s)\n" +
+                                $"Not found: {notFoundCount} window(s)";
+
+        if(notFoundCount > 0)
+        {
+            summaryMessage += "\n\nWindows not found for:\n- " + string.Join("\n- ", notFoundConfigNames);
+        }
+
+        MessageBox.Show(summaryMessage, "Test Layout Complete", MessageBoxButtons.OK,
+            notFoundCount > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
     }
 
     public void Dispose()
