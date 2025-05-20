@@ -72,10 +72,6 @@ public partial class FormMain : Form
         }
     }
 
-
-
-
-
     async void buttonFocusAllProfileApps_Click(object sender, EventArgs e)
     {
         if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
@@ -112,6 +108,16 @@ public partial class FormMain : Form
 
         WindowConfigGridUIManager.InitializeDataGridView(dataGridViewWindowConfigs);
         StartupOptionsUIManager.InitializeComboBox(comboBoxStartupOptions);
+
+        foreach(DataGridViewColumn column in dataGridViewWindowConfigs.Columns)
+        {
+            if(column.DataPropertyName == nameof(WindowConfig.WindowTitleHint))
+            {
+                column.HeaderText = "Window Title (Starts With)";
+                column.ToolTipText = "The window title must start with this text (case-insensitive). E.g., 'MyGame' for 'MyGame - 01/01/2024'.";
+                break;
+            }
+        }
 
         SetupInitialActiveProfile();
 
@@ -283,7 +289,7 @@ public partial class FormMain : Form
 
         Process selectedProcess = formSelectProcess.SelectedProcess;
         IntPtr selectedHWnd = formSelectProcess.SelectedWindowHandle;
-        string selectedTitle = formSelectProcess.SelectedWindowTitle;
+        string selectedTitle = formSelectProcess.SelectedWindowTitle; // This is the full title. User can edit it in the grid to a prefix.
 
         if(selectedProcess == null || selectedHWnd == IntPtr.Zero) return;
 
@@ -300,7 +306,7 @@ public partial class FormMain : Form
                 IsEnabled = true,
                 ProcessName = selectedProcess.ProcessName,
                 ExecutablePath = executablePath,
-                WindowTitleHint = selectedTitle,
+                WindowTitleHint = selectedTitle, // Initially full title, user can edit to a prefix
                 LaunchAsAdmin = isSelectedProcessElevated,
                 ControlPosition = true,
                 TargetX = currentRect.Left,
@@ -369,7 +375,6 @@ public partial class FormMain : Form
         if(dr == DialogResult.Cancel) return;
 
         bool success = windowActionService.CloseApp(selectedConfig, dr == DialogResult.Yes, 2000);
-        MessageBox.Show(success ? $"Close attempt for '{appIdentifier}' initiated." : $"Failed to close '{appIdentifier}'.", success ? "Close Attempted" : "Close Failed", MessageBoxButtons.OK, success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
     }
 
 
@@ -418,7 +423,6 @@ public partial class FormMain : Form
                 supressErrorDialogsForBatch: true
             );
             Debug.WriteLine($"FormMain: 'Close All Profile Apps' operation completed for profile '{selectedProfileForEditing.Name}'.");
-            MessageBox.Show($"Attempted to close all enabled applications in profile '{selectedProfileForEditing.Name}'. Check debug logs for details.", "Operation Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch(Exception ex)
         {
@@ -503,7 +507,7 @@ public partial class FormMain : Form
         var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
         if(selectedConfig == null) return;
         IntPtr hWnd = findFunc(selectedConfig);
-        if(hWnd == IntPtr.Zero) { MessageBox.Show($"Window not found for '{selectedConfig.ProcessName}'. Ensure app is running.", "Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(hWnd == IntPtr.Zero) { MessageBox.Show($"Window not found for '{selectedConfig.ProcessName}'. Ensure app is running and Window Title Hint is correct.", "Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
         if(Native.GetWindowRect(hWnd, out RECT rect))
         {
             updateAction(selectedConfig, rect);
@@ -540,7 +544,7 @@ public partial class FormMain : Form
         notifyIconMain = null; Environment.Exit(0);
     }
 
-    void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { }
+    void dataGridViewWindowConfigs_CellEndEdit(object sender, DataGridViewCellEventArgs e) { } // Intentionally empty, events handled by CellValueChanged or property bindings
 
     void buttonFocus_Click(object sender, EventArgs e)
     {
@@ -570,7 +574,7 @@ public partial class FormMain : Form
         }
         else
         {
-            MessageBox.Show($"Application '{selectedConfig.ProcessName}' is not running or its window could not be found based on the current configuration.", "Not Running or Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Application '{selectedConfig.ProcessName}' is not running or its window could not be found based on the current configuration (check Window Title Hint).", "Not Running or Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

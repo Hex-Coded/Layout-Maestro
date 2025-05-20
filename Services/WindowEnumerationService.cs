@@ -71,7 +71,7 @@ public static partial class WindowEnumerationService
         if(!string.IsNullOrWhiteSpace(config.WindowTitleHint))
         {
             FoundWindowInfo exactTitleMatch = candidates.FirstOrDefault(fw =>
-                fw.Title != null && fw.Title.Equals(config.WindowTitleHint, StringComparison.OrdinalIgnoreCase));
+                fw.Title != null && fw.Title.StartsWith(config.WindowTitleHint, StringComparison.OrdinalIgnoreCase));
             if(exactTitleMatch != null) return exactTitleMatch;
         }
         return candidates.FirstOrDefault();

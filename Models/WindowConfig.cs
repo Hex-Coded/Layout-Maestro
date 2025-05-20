@@ -8,7 +8,7 @@ public class WindowConfig : INotifyPropertyChanged
     bool isEnabled = true;
     string processName = string.Empty;
     string executablePath = string.Empty;
-    string windowTitleHint = string.Empty;
+    string windowTitleHint = string.Empty; // This hint will now be used as a prefix
     bool controlPosition = true;
     int targetX;
     int targetY;
