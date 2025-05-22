@@ -254,9 +254,6 @@ public class WindowMonitorService : IDisposable
             Debug.WriteLine($"HandleProcessNotRunning: '{appName}' not running, but AutoRelaunch is disabled. No action.");
         }
     }
-
-
-
     public void InitializeTimer()
     {
         if(_monitorTimer == null)
