@@ -68,7 +68,7 @@ public partial class FormMain : Form
         finally
         {
             buttonLaunchAllProfileApps.Enabled = true;
-            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonHideAll, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
 
@@ -87,14 +87,14 @@ public partial class FormMain : Form
         finally
         {
             buttonFocusAllProfileApps.Enabled = true;
-            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonHideAll, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
 
     void UpdateAllButtonStates()
     {
-        ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
-        WindowConfigGridUIManager.UpdateSelectionDependentButtons(dataGridViewWindowConfigs, buttonRemoveWindowConfig, buttonActivateLaunchApp, buttonFocus, buttonCloseApp, buttonFetchPosition, buttonFetchSize);
+        ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonHideAll, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+        WindowConfigGridUIManager.UpdateSelectionDependentButtons(dataGridViewWindowConfigs, buttonRemoveWindowConfig, buttonActivateLaunchApp, buttonFocus, buttonMinimizeOne, buttonCloseApp, buttonFetchPosition, buttonFetchSize);
         ProfileUIManager.UpdateProfileManagementButtons(buttonRemoveProfile, buttonRenameProfile, buttonCloneProfile, buttonAddWindowConfig, selectedProfileForEditing != null, appSettings.Profiles.Count);
     }
 
@@ -432,7 +432,7 @@ public partial class FormMain : Form
         finally
         {
             buttonCloseAllProfileApps.Enabled = true;
-            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonHideAll, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
         }
     }
     void buttonTestSelectedProfile_Click(object sender, EventArgs e)
@@ -567,6 +567,57 @@ public partial class FormMain : Form
         {
             Debug.WriteLine($"App '{selectedConfig.ProcessName}' (hWnd:{windowInfo.HWnd}) found. Attempting to focus.");
             bool success = windowActionService.BringWindowToForeground(windowInfo.HWnd);
+            if(!success)
+            {
+                MessageBox.Show($"Failed to bring the window for '{selectedConfig.ProcessName}' to the foreground.\nThis can happen if another application is actively preventing focus changes or if the window is minimized in a way that prevents normal activation.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        else
+        {
+            MessageBox.Show($"Application '{selectedConfig.ProcessName}' is not running or its window could not be found based on the current configuration (check Window Title Hint).", "Not Running or Window Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+
+    private async void buttonHideAll_Click(object sender, EventArgs e)
+    {
+        if(selectedProfileForEditing == null) { MessageBox.Show("Select a profile.", "No Profile", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+        if(!selectedProfileForEditing.WindowConfigs.Any(c => c.IsEnabled)) { MessageBox.Show($"Profile '{selectedProfileForEditing.Name}' has no enabled configs.", "No Action", MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        buttonHideAll.Enabled = false;
+        try
+        {
+            await windowActionService.ProcessAllAppsInProfile(selectedProfileForEditing,
+                launchIfNotRunning: false,
+                bringToForegroundIfRunning: false,
+                closeIfRunning: false, minimizeIfFound: true);
+        }
+        finally
+        {
+            buttonFocusAllProfileApps.Enabled = true;
+            ProfileUIManager.UpdateProfileSpecificActionButtons(buttonLaunchAllProfileApps, buttonFocusAllProfileApps, buttonHideAll, buttonCloseAllProfileApps, buttonTestSelectedProfile, selectedProfileForEditing);
+        }
+    }
+
+    private void buttonMinimizeOne_Click(object sender, EventArgs e)
+    {
+        var selectedConfig = WindowConfigGridUIManager.GetSelectedWindowConfig(dataGridViewWindowConfigs);
+        if(selectedConfig == null)
+        {
+            MessageBox.Show("Please select a window configuration from the list to focus.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if(!selectedConfig.IsEnabled)
+        {
+            MessageBox.Show($"This configuration for '{selectedConfig.ProcessName}' is disabled. No action taken.", "Action Skipped", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var windowInfo = windowActionService.FindManagedWindow(selectedConfig);
+
+        if(windowInfo != null && windowInfo.HWnd != IntPtr.Zero)
+        {
+            Debug.WriteLine($"App '{selectedConfig.ProcessName}' (hWnd:{windowInfo.HWnd}) found. Attempting to focus.");
+            bool success = windowActionService.BringWindowToBackground(windowInfo.HWnd);
             if(!success)
             {
                 MessageBox.Show($"Failed to bring the window for '{selectedConfig.ProcessName}' to the foreground.\nThis can happen if another application is actively preventing focus changes or if the window is minimized in a way that prevents normal activation.", "Focus Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);

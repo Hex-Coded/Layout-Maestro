@@ -92,6 +92,22 @@ public class WindowActionService
         }
     }
 
+    public bool BringWindowToBackground(IntPtr hWnd)
+    {
+        if(hWnd == IntPtr.Zero) return false;
+        try
+        {
+            if(!Native.IsIconic(hWnd)) 
+                Native.ShowWindow(hWnd, Native.SW_MINIMIZE);
+            return Native.SetForegroundWindow(hWnd);
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"Error bringing window {hWnd} to foreground: {ex.Message}");
+            return false;
+        }
+    }
+
     public bool ActivateOrLaunchApp(WindowConfig config)
     {
         if(config == null) return false;
@@ -216,6 +232,7 @@ public class WindowActionService
        bool closeIfRunning,
        bool supressErrorDialogsForBatch = true,
        bool forceKillIfNotClosed = false,
+       bool minimizeIfFound = false,
        int closeGracePeriodMs = 2000,
        int defaultDelayMs = 250,
        int adminLaunchDelayMs = 750)
@@ -321,6 +338,14 @@ public class WindowActionService
                     alreadyRunningOrFocusedCount++;
                     Debug.WriteLine($"ProcessAllAppsInProfile: App '{configIdentifier}' (PID: {process.Id}) is considered RUNNING and ACCESSIBLE.");
 
+
+                    if(minimizeIfFound)
+                    {
+                        if(!BringWindowToBackground(foundHWnd))
+                        {
+                            Debug.WriteLine($"ProcessAllAppsInProfile: Failed to focus '{configIdentifier}'.");
+                        }
+                    }
                     if(closeIfRunning)
                     {
                         closeAttemptedCount++;

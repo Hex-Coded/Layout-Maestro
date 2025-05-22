@@ -70,6 +70,7 @@ public static class Native
     public const int SW_RESTORE = 9;
     public const int SW_SHOW = 5;
     public const int SW_SHOWNORMAL = 1;
+    public const int SW_MINIMIZE = 6;
 
 
     public static string GetWindowTitle(IntPtr hWnd)

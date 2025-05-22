@@ -26,7 +26,7 @@ public static class ProfileUIManager
         addConfigButton.Enabled = profileSelected;
     }
 
-    public static void UpdateProfileSpecificActionButtons(Button launchAllButton, Button focusAllButton, Button closeAllButton, Button testButton, Profile selectedProfile)
+    public static void UpdateProfileSpecificActionButtons(Button launchAllButton, Button focusAllButton, Button buttonHideAll, Button closeAllButton, Button testButton, Profile selectedProfile)
     {
         bool profileSelected = selectedProfile != null;
         bool hasEnabledConfigs = profileSelected && selectedProfile.WindowConfigs.Any(wc => wc.IsEnabled);
@@ -34,6 +34,7 @@ public static class ProfileUIManager
         focusAllButton.Enabled = hasEnabledConfigs;
         closeAllButton.Enabled = hasEnabledConfigs;
         testButton.Enabled = hasEnabledConfigs;
+        buttonHideAll.Enabled = hasEnabledConfigs;
     }
 
     public static Profile HandleAddProfile(List<Profile> profiles)

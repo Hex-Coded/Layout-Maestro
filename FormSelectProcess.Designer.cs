@@ -23,9 +23,10 @@
             base.Dispose(disposing);
         }
 
-     void InitializeComponent()
+        void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormSelectProcess));
             listViewProcesses = new ListView();
             columnHeaderProcessName = new ColumnHeader();
             columnHeaderPID = new ColumnHeader();
@@ -138,6 +139,7 @@
             Controls.Add(buttonCancel);
             Controls.Add(buttonSelect);
             Controls.Add(listViewProcesses);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             MinimumSize = new Size(450, 300);
