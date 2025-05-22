@@ -97,7 +97,7 @@ public class WindowActionService
         if(hWnd == IntPtr.Zero) return false;
         try
         {
-            if(!Native.IsIconic(hWnd)) 
+            if(!Native.IsIconic(hWnd))
                 Native.ShowWindow(hWnd, Native.SW_MINIMIZE);
             return Native.SetForegroundWindow(hWnd);
         }

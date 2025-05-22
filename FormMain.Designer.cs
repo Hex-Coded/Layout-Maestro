@@ -74,12 +74,14 @@
             buttonRemoveWindowConfig = new Button();
             buttonActivateLaunchApp = new Button();
             buttonFocus = new Button();
+            buttonMinimizeOne = new Button();
             buttonCloseApp = new Button();
             buttonFetchPosition = new Button();
             buttonFetchSize = new Button();
             flowLayoutPanelProfileActions = new FlowLayoutPanel();
             buttonLaunchAllProfileApps = new Button();
             buttonFocusAllProfileApps = new Button();
+            buttonHideAll = new Button();
             buttonCloseAllProfileApps = new Button();
             buttonTestSelectedProfile = new Button();
             dataGridViewWindowConfigs = new DataGridView();
@@ -97,8 +99,6 @@
             labelStartupOptions = new Label();
             buttonSaveChanges = new Button();
             toolTipGeneral = new ToolTip(components);
-            buttonHideAll = new Button();
-            buttonMinimizeOne = new Button();
             contextMenuStripTray.SuspendLayout();
             tabControlMain.SuspendLayout();
             tabPageProfiles.SuspendLayout();
@@ -273,6 +273,18 @@
             buttonFocus.UseVisualStyleBackColor = true;
             buttonFocus.Click += buttonFocus_Click;
             // 
+            // buttonMinimizeOne
+            // 
+            buttonMinimizeOne.Enabled = false;
+            buttonMinimizeOne.Location = new Point(347, 3);
+            buttonMinimizeOne.Name = "buttonMinimizeOne";
+            buttonMinimizeOne.Size = new Size(80, 25);
+            buttonMinimizeOne.TabIndex = 4;
+            buttonMinimizeOne.Text = "Minimize";
+            toolTipGeneral.SetToolTip(buttonMinimizeOne, "Update Width,Height from the live window");
+            buttonMinimizeOne.UseVisualStyleBackColor = true;
+            buttonMinimizeOne.Click += buttonMinimizeOne_Click;
+            // 
             // buttonCloseApp
             // 
             buttonCloseApp.Enabled = false;
@@ -345,6 +357,18 @@
             toolTipGeneral.SetToolTip(buttonFocusAllProfileApps, "Bring all running apps in profile to foreground");
             buttonFocusAllProfileApps.UseVisualStyleBackColor = true;
             buttonFocusAllProfileApps.Click += buttonFocusAllProfileApps_Click;
+            // 
+            // buttonHideAll
+            // 
+            buttonHideAll.Enabled = false;
+            buttonHideAll.Location = new Point(225, 3);
+            buttonHideAll.Name = "buttonHideAll";
+            buttonHideAll.Size = new Size(90, 25);
+            buttonHideAll.TabIndex = 2;
+            buttonHideAll.Text = "Minimize All";
+            toolTipGeneral.SetToolTip(buttonHideAll, "Bring all running apps in profile to foreground");
+            buttonHideAll.UseVisualStyleBackColor = true;
+            buttonHideAll.Click += buttonHideAll_Click;
             // 
             // buttonCloseAllProfileApps
             // 
@@ -439,7 +463,7 @@
             buttonRenameProfile.Name = "buttonRenameProfile";
             buttonRenameProfile.Size = new Size(174, 25);
             buttonRenameProfile.TabIndex = 3;
-            buttonRenameProfile.Text = "Rename Selected";
+            buttonRenameProfile.Text = "Rename Profile";
             buttonRenameProfile.UseVisualStyleBackColor = true;
             buttonRenameProfile.Click += buttonRenameProfile_Click;
             // 
@@ -450,7 +474,7 @@
             buttonCloneProfile.Name = "buttonCloneProfile";
             buttonCloneProfile.Size = new Size(174, 25);
             buttonCloneProfile.TabIndex = 4;
-            buttonCloneProfile.Text = "Clone Selected";
+            buttonCloneProfile.Text = "Clone Profile";
             buttonCloneProfile.UseVisualStyleBackColor = true;
             buttonCloneProfile.Click += buttonCloneProfile_Click;
             // 
@@ -461,7 +485,7 @@
             buttonRemoveProfile.Name = "buttonRemoveProfile";
             buttonRemoveProfile.Size = new Size(174, 25);
             buttonRemoveProfile.TabIndex = 5;
-            buttonRemoveProfile.Text = "Remove Selected";
+            buttonRemoveProfile.Text = "Remove Profile";
             buttonRemoveProfile.UseVisualStyleBackColor = true;
             buttonRemoveProfile.Click += buttonRemoveProfile_Click;
             // 
@@ -528,30 +552,6 @@
             buttonSaveChanges.UseVisualStyleBackColor = true;
             buttonSaveChanges.Click += buttonSaveChanges_Click;
             // 
-            // buttonHideAll
-            // 
-            buttonHideAll.Enabled = false;
-            buttonHideAll.Location = new Point(225, 3);
-            buttonHideAll.Name = "buttonHideAll";
-            buttonHideAll.Size = new Size(90, 25);
-            buttonHideAll.TabIndex = 2;
-            buttonHideAll.Text = "Minimize All";
-            toolTipGeneral.SetToolTip(buttonHideAll, "Bring all running apps in profile to foreground");
-            buttonHideAll.UseVisualStyleBackColor = true;
-            buttonHideAll.Click += buttonHideAll_Click;
-            // 
-            // buttonMinimizeOne
-            // 
-            buttonMinimizeOne.Enabled = false;
-            buttonMinimizeOne.Location = new Point(347, 3);
-            buttonMinimizeOne.Name = "buttonMinimizeOne";
-            buttonMinimizeOne.Size = new Size(80, 25);
-            buttonMinimizeOne.TabIndex = 4;
-            buttonMinimizeOne.Text = "Minimize";
-            toolTipGeneral.SetToolTip(buttonMinimizeOne, "Update Width,Height from the live window");
-            buttonMinimizeOne.UseVisualStyleBackColor = true;
-            buttonMinimizeOne.Click += buttonMinimizeOne_Click;
-            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -582,7 +582,7 @@
             ResumeLayout(false);
         }
         Button buttonFocus;
-        private Button buttonHideAll;
-        private Button buttonMinimizeOne;
+         Button buttonHideAll;
+         Button buttonMinimizeOne;
     }
 }

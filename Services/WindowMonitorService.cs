@@ -28,8 +28,8 @@ public class WindowMonitorService : IDisposable
     Dictionary<string, MonitoredProcessState> _activeMonitoredStates = new Dictionary<string, MonitoredProcessState>();
     readonly object _lockMonitoredStates = new object();
 
-    private const int UAC_PENDING_TIMEOUT_SECONDS = 60;
-    private const int UAC_CANCEL_COOLDOWN_SECONDS = int.MaxValue;
+    const int UAC_PENDING_TIMEOUT_SECONDS = 60;
+    const int UAC_CANCEL_COOLDOWN_SECONDS = int.MaxValue;
 
     public WindowMonitorService(SettingsManager settingsManager, WindowActionService windowActionService)
     {
@@ -155,7 +155,7 @@ public class WindowMonitorService : IDisposable
         }
     }
 
-    private void HandleProcessNotRunning(MonitoredProcessState state)
+    void HandleProcessNotRunning(MonitoredProcessState state)
     {
         string appName = state.Config.ProcessName ?? state.Config.ExecutablePath ?? "UnknownApp";
 
