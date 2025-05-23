@@ -1,5 +1,5 @@
 Simple but powerful tool to control your window layout how you see fit.
-It's default state is to sit in the background and listen for processes to open.
+Its default state is to sit in the background and listen for processes to open.
 When it detects a process has opened, it will position and scale the window once at app start.
 (This simply puts windows in the same size and place each time they are launched)
 
