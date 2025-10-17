@@ -11,3 +11,4 @@ I use this for coding, hacking, and trading. Quite useful imo!
 ![layout 2](https://github.com/user-attachments/assets/25242d93-5734-40be-a0b6-c9321830b3de)
 
 :)
+.
